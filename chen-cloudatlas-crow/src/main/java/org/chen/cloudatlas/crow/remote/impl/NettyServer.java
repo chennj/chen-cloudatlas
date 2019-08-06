@@ -7,9 +7,14 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.chen.cloudatlas.crow.common.URL;
 import org.chen.cloudatlas.crow.common.thread.SingletonTimer;
+import org.chen.cloudatlas.crow.config.CrowServerContext;
 import org.chen.cloudatlas.crow.remote.ChannelListener;
 
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.Timer;
+import io.netty.util.concurrent.DefaultThreadFactory;
 
 public class NettyServer extends AbstractServer{
 
@@ -19,6 +24,27 @@ public class NettyServer extends AbstractServer{
 	
 	private static Map<String, NettyServer> serverMap = new ConcurrentHashMap<>();
 	
+	private ServerBootstrap bootstrap;
+	
+	private static EventLoopGroup parentGroup;
+	
+	private static EventLoopGroup childGroup;
+	
+	private boolean isStarted;
+	
+	private boolean isBound;
+	
+	static{
+		if (CrowServerContext.getConfig() != null){
+			int bossCount = CrowServerContext.getConfig().getApplicationConfig().getNettyBossCount();
+			int workerCount = CrowServerContext.getConfig().getApplicationConfig().getNettyWorkerCount();
+			parentGroup = new NioEventLoopGroup(bossCount, new DefaultThreadFactory("crow-client-boss"));
+			childGroup = new NioEventLoopGroup(workerCount, new DefaultThreadFactory("crow-client-worker"));
+		} else {
+			parentGroup = new NioEventLoopGroup(0,new DefaultThreadFactory("crow-client-boss"));
+			childGroup = new NioEventLoopGroup(0,new DefaultThreadFactory("crow-client-worker"));
+		}
+	}
 	public NettyServer(URL url, ChannelListener listener){
 		super(url, listener);
 		this.timer = SingletonTimer.getTimer();
