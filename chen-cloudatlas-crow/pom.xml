@@ -1,0 +1,133 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>mud.chen.cloudatlas</groupId>
+		<artifactId>chen-cloudatlas</artifactId>
+		<version>1.0.0</version>
+	</parent>
+	<artifactId>chen-cloudatlas-crow</artifactId>
+	<name>chen-cloudatlas-crow</name>
+	<url>http://maven.apache.org</url>
+	<properties>
+	  	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<dependencies>
+		<!-- ref from parent -->
+	  	<dependency>
+		    <groupId>org.tinylog</groupId>
+		    <artifactId>tinylog-api</artifactId>
+		</dependency>
+	  	
+	  	<!-- 通用 -->
+	  	<dependency>
+	  		<groupId>commons-lang</groupId>
+	  		<artifactId>commons-lang</artifactId>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>commons-beanutils</groupId>
+	  		<artifactId>commons-beanutils</artifactId>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>commons-codec</groupId>
+	  		<artifactId>commons-codec</artifactId>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>commons-fileupload</groupId>
+	  		<artifactId>commons-fileupload</artifactId>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>commons-io</groupId>
+	  		<artifactId>commons-io</artifactId>
+	  	</dependency>
+	  	
+	  	<dependency>
+	  		<groupId>com.alibaba</groupId>
+	  		<artifactId>fastjson</artifactId>
+	  	</dependency>
+	  	
+	  	<dependency>
+	  		<groupId>com.caucho</groupId>
+	  		<artifactId>hessian</artifactId>
+	  	</dependency>
+	  	
+	  	<dependency>
+	  		<groupId>com.esotericsoftware</groupId>
+	  		<artifactId>kryo</artifactId>
+	  	</dependency>
+	  	
+	  	<dependency>
+	  		<groupId>io.undertow</groupId>
+	  		<artifactId>undertow-core</artifactId>
+	  	</dependency>
+	  	
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+	  	<!-- zookeeper -->
+		<!-- https://mvnrepository.com/artifact/org.apache.zookeeper/zookeeper -->
+		<dependency>
+		    <groupId>org.apache.zookeeper</groupId>
+		    <artifactId>zookeeper</artifactId>
+		    <type>pom</type>
+		</dependency>
+
+	  	
+	  	<!-- zookeeper api封装 -->
+		<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-framework -->
+		<dependency>
+		    <groupId>org.apache.curator</groupId>
+		    <artifactId>curator-framework</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-client -->
+		<dependency>
+		    <groupId>org.apache.curator</groupId>
+		    <artifactId>curator-client</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-recipes -->
+		<dependency>
+		    <groupId>org.apache.curator</groupId>
+		    <artifactId>curator-recipes</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-test -->
+		<dependency>
+		    <groupId>org.apache.curator</groupId>
+		    <artifactId>curator-test</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		
+	  	<!-- 网络 -->
+	  	<dependency>
+	  		<groupId>io.netty</groupId>
+	  		<artifactId>netty-all</artifactId>
+	  	</dependency>
+		<!-- ref from parent end -->
+		
+	  	<!-- spring -->
+	  	<dependency>
+	  		<groupId>org.springframework</groupId>
+	  		<artifactId>spring-core</artifactId>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>org.springframework</groupId>
+	  		<artifactId>spring-context</artifactId>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>org.springframework</groupId>
+	  		<artifactId>spring-beans</artifactId>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>org.springframework</groupId>
+	  		<artifactId>spring-aop</artifactId>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>org.springframework</groupId>
+	  		<artifactId>spring-expression</artifactId>
+	  	</dependency>
+		
+	</dependencies>
+</project>

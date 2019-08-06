@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>mud.chen.cloudatlas</groupId>
+		<artifactId>chen-cloudatlas</artifactId>
+		<version>1.0.0</version>
+	</parent>
+	<artifactId>chen-cloudatlas-frameworks</artifactId>
+	<version>1.0.0</version>
+	<name>chen-cloudatlas-frameworks</name>
+	<url>http://maven.apache.org</url>
+	<properties>
+	  	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	  	<version.reflections>0.9.11</version.reflections>
+	</properties>
+	<dependencies>
+	
+	  	<!-- 日志 -->
+	  	<dependency>
+		    <groupId>org.tinylog</groupId>
+		    <artifactId>tinylog-api</artifactId>
+		</dependency>
+	  	
+	  	<!-- 通用 -->
+	  	<dependency>
+	  		<groupId>commons-lang</groupId>
+	  		<artifactId>commons-lang</artifactId>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>commons-beanutils</groupId>
+	  		<artifactId>commons-beanutils</artifactId>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>commons-codec</groupId>
+	  		<artifactId>commons-codec</artifactId>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>commons-fileupload</groupId>
+	  		<artifactId>commons-fileupload</artifactId>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>commons-io</groupId>
+	  		<artifactId>commons-io</artifactId>
+	  	</dependency>
+	  	
+	  	<!-- 包扫描反色工具 -->
+	  	<dependency>
+	  		<groupId>org.reflections</groupId>
+	  		<artifactId>reflections</artifactId>
+	  		<version>${version.reflections}</version>
+	  	</dependency>
+		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+	</dependencies>
+</project>

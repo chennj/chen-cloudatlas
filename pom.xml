@@ -1,0 +1,207 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>mud.chen.cloudatlas</groupId>
+	<artifactId>chen-cloudatlas</artifactId>
+	<version>1.0.0</version>
+	<packaging>pom</packaging>
+	
+	<name>chen-cloudatlas</name>
+	<url>http://maven.apache.org</url>
+	
+	<properties>
+	  	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	  	<version.tinylog>2.0.0-M4.3</version.tinylog>
+	  	<version.commons-lang>2.6</version.commons-lang>
+	  	<version.commons-beanutils>1.9.3</version.commons-beanutils>
+	  	<version.commons-codec>1.11</version.commons-codec>
+	  	<version.commons-fileupload>1.3.1</version.commons-fileupload>
+	  	<version.commons-io>2.6</version.commons-io>
+	  	<version.fastjson>1.2.47</version.fastjson>
+	  	<version.com.caucho.hessian>4.0.38</version.com.caucho.hessian>
+	  	<version.com.esotericsoftware.kryo>4.0.1</version.com.esotericsoftware.kryo>
+	  	<version.io.undertow.undertow-core>1.4.20.Final</version.io.undertow.undertow-core>
+	  	<version.spring>4.3.1.RELEASE</version.spring>
+	  	<version.netty.netty-all>4.1.12.Final</version.netty.netty-all>
+	  	<version.org.xerial.snappy.snappy-java>1.0.5</version.org.xerial.snappy.snappy-java>
+	  	<version.easymock>3.0</version.easymock>
+	  	<version.curator>3.0</version.curator>
+	  	<version.httpclient>4.5.6</version.httpclient>
+	  	<version.curator>4.1.0</version.curator>
+	  	<version.zookeeper>3.4.14</version.zookeeper>
+	</properties>
+	
+	<dependencyManagement>
+	<dependencies>
+		<!-- 测试 -->
+	  	<dependency>
+		    <groupId>junit</groupId>
+		    <artifactId>junit</artifactId>
+		    <version>3.8.1</version>
+		    <scope>test</scope>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>org.easymock</groupId>
+	  		<artifactId>easymock</artifactId>
+	  		<version>${version.easymock}</version>
+	  		<scope>test</scope>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>org.apache.curator</groupId>
+	  		<artifactId>curator-test</artifactId>
+	  		<version>${version.curator}</version>
+	  		<scope>test</scope>
+	  	</dependency>
+	  	
+	  	<!-- 日志 -->
+	  	<dependency>
+		    <groupId>org.tinylog</groupId>
+		    <artifactId>tinylog-api</artifactId>
+		    <version>${version.tinylog}</version>
+		</dependency>
+	  	
+	  	<!-- 通用 -->
+	  	<dependency>
+	  		<groupId>commons-lang</groupId>
+	  		<artifactId>commons-lang</artifactId>
+	  		<version>${version.commons-lang}</version>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>commons-beanutils</groupId>
+	  		<artifactId>commons-beanutils</artifactId>
+	  		<version>${version.commons-beanutils}</version>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>commons-codec</groupId>
+	  		<artifactId>commons-codec</artifactId>
+	  		<version>${version.commons-codec}</version>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>commons-fileupload</groupId>
+	  		<artifactId>commons-fileupload</artifactId>
+	  		<version>${version.commons-fileupload}</version>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>commons-io</groupId>
+	  		<artifactId>commons-io</artifactId>
+	  		<version>${version.commons-io}</version>
+	  	</dependency>
+	  	
+	  	<dependency>
+	  		<groupId>com.alibaba</groupId>
+	  		<artifactId>fastjson</artifactId>
+	  		<version>${version.fastjson}</version>
+	  	</dependency>
+	  	
+	  	<dependency>
+	  		<groupId>com.caucho</groupId>
+	  		<artifactId>hessian</artifactId>
+	  		<version>${version.com.caucho.hessian}</version>
+	  	</dependency>
+	  	
+	  	<dependency>
+	  		<groupId>com.esotericsoftware</groupId>
+	  		<artifactId>kryo</artifactId>
+	  		<version>${version.com.esotericsoftware.kryo}</version>
+	  	</dependency>
+	  	
+	  	<dependency>
+	  		<groupId>io.undertow</groupId>
+	  		<artifactId>undertow-core</artifactId>
+	  		<version>${version.io.undertow.undertow-core}</version>
+	  	</dependency>
+	  	
+	  	<!-- spring -->
+	  	<dependency>
+	  		<groupId>org.springframework</groupId>
+	  		<artifactId>spring-core</artifactId>
+	  		<version>${version.spring}</version>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>org.springframework</groupId>
+	  		<artifactId>spring-context</artifactId>
+	  		<version>${version.spring}</version>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>org.springframework</groupId>
+	  		<artifactId>spring-beans</artifactId>
+	  		<version>${version.spring}</version>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>org.springframework</groupId>
+	  		<artifactId>spring-aop</artifactId>
+	  		<version>${version.spring}</version>
+	  	</dependency>
+	  	<dependency>
+	  		<groupId>org.springframework</groupId>
+	  		<artifactId>spring-expression</artifactId>
+	  		<version>${version.spring}</version>
+	  	</dependency>
+	  	
+	  	<!-- 网络 -->
+	  	<dependency>
+	  		<groupId>io.netty</groupId>
+	  		<artifactId>netty-all</artifactId>
+	  		<version>${version.netty.netty-all}</version>
+	  	</dependency>
+	  	
+	  	<!-- zookeeper -->
+		<!-- https://mvnrepository.com/artifact/org.apache.zookeeper/zookeeper -->
+		<dependency>
+		    <groupId>org.apache.zookeeper</groupId>
+		    <artifactId>zookeeper</artifactId>
+		    <version>${version.zookeeper}</version>
+		    <type>pom</type>
+		</dependency>
+
+	  	
+	  	<!-- zookeeper api封装 -->
+		<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-framework -->
+		<dependency>
+		    <groupId>org.apache.curator</groupId>
+		    <artifactId>curator-framework</artifactId>
+		    <version>${version.curator}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-client -->
+		<dependency>
+		    <groupId>org.apache.curator</groupId>
+		    <artifactId>curator-client</artifactId>
+		    <version>${version.curator}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-recipes -->
+		<dependency>
+		    <groupId>org.apache.curator</groupId>
+		    <artifactId>curator-recipes</artifactId>
+		    <version>${version.curator}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-test -->
+		<dependency>
+		    <groupId>org.apache.curator</groupId>
+		    <artifactId>curator-test</artifactId>
+		    <version>${version.curator}</version>
+		    <scope>test</scope>
+		</dependency>
+	  	
+	  	<!-- httpclient -->
+	  	<dependency>
+	  		<groupId>org.apache.httpcomponents</groupId>
+	  		<artifactId>httpclient</artifactId>
+	  		<version>${version.httpclient}</version>
+	  	</dependency>
+	  	
+	  	<dependency>
+	  		<groupId>org.xerial.snappy</groupId>
+	  		<artifactId>snappy-java</artifactId>
+	  		<version>${version.org.xerial.snappy.snappy-java}</version>
+	  	</dependency>
+	  	
+	</dependencies>
+	</dependencyManagement>
+	
+	<modules>
+		<module>chen-cloudatlas-honeybadger</module>
+		<module>chen-cloudatlas-crow</module>
+		<module>chen-cloudatlas-frameworks</module>
+	</modules>
+</project>
