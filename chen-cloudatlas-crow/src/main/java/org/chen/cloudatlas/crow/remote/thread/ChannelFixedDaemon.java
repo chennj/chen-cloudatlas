@@ -1,4 +1,4 @@
-package org.chen.cloudatlas.crow.common.thread;
+package org.chen.cloudatlas.crow.remote.thread;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -6,9 +6,10 @@ import java.util.List;
 
 import org.chen.cloudatlas.crow.common.utils.UrlUtil;
 import org.chen.cloudatlas.crow.config.CrowClientContext;
-import org.chen.cloudatlas.crow.remote.Channel;
 import org.chen.cloudatlas.crow.remote.ChannelRegistry;
 import org.tinylog.Logger;
+
+import io.netty.channel.Channel;
 
 /**
  * 守护线程<br>
@@ -34,7 +35,7 @@ public class ChannelFixedDaemon extends AbstractDaemon{
 				
 				Logger.debug("do with channel:" + c);
 				
-				SocketAddress address = c.getRemoteAddress();
+				SocketAddress address = c.remoteAddress();
 				String ipAndPort = UrlUtil.getAddressKey((InetSocketAddress)address);
 				
 				if (!CrowClientContext.isRemoteEnd(ipAndPort)){

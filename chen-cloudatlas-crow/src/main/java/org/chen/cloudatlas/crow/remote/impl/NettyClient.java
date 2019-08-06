@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.chen.cloudatlas.crow.common.Constants;
 import org.chen.cloudatlas.crow.common.URL;
-import org.chen.cloudatlas.crow.common.utils.SingletonTimer;
+import org.chen.cloudatlas.crow.common.thread.SingletonTimer;
 import org.chen.cloudatlas.crow.common.utils.UrlUtil;
 import org.chen.cloudatlas.crow.config.CrowClientContext;
 import org.chen.cloudatlas.crow.remote.ChannelListener;

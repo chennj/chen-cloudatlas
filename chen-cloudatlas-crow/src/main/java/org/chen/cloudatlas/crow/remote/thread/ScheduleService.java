@@ -1,8 +1,10 @@
-package org.chen.cloudatlas.crow.common.thread;
+package org.chen.cloudatlas.crow.remote.thread;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import org.chen.cloudatlas.crow.common.thread.NamedThreadFactory;
 
 /**
  * 守护线程调度器
@@ -17,7 +19,7 @@ public class ScheduleService<T extends AbstractDaemon> {
 	 * 初始化调度线程池
 	 */
 	public ScheduleService(){
-		suc = Executors.newScheduledThreadPool(1, new NamedThreadFactory("crow-channel-fix-daemon",true));
+		suc = Executors.newScheduledThreadPool(1, new NamedThreadFactory("crow-channel-fix-daemon"));
 	}
 	
 	/**

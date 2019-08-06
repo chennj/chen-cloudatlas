@@ -1,4 +1,4 @@
-package org.chen.cloudatlas.crow.common.thread;
+package org.chen.cloudatlas.crow.remote.thread;
 
 import org.chen.cloudatlas.crow.common.utils.AtomicPositiveInteger;
 
