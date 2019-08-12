@@ -1,8 +1,5 @@
 package org.chen.cloudatlas.crow.remote.impl;
 
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -12,23 +9,25 @@ import org.chen.cloudatlas.crow.common.utils.NameableServiceLoader;
 import org.chen.cloudatlas.crow.remote.ChannelListener;
 import org.chen.cloudatlas.crow.remote.MessageWrapper;
 import org.chen.cloudatlas.crow.remote.Request;
-import org.chen.cloudatlas.crow.remote.codec.AbstractEncoder;
+import org.chen.cloudatlas.crow.remote.codec.AbstractDecoder;
 import org.chen.cloudatlas.crow.remote.codec.CodecFactory;
 
-import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.Timer;
+import io.netty.util.concurrent.EventExecutorGroup;
 
-@ChannelHandler.Sharable
-public class ClientChannelInitializer extends ChannelInitializer<SocketChannel>{
+public class ServerChannelInitializer extends ChannelInitializer<SocketChannel>{
 
 	private static final LoggingHandler LOGGING_HANDLER = new LoggingHandler();
 	
 	private static final boolean hexDump = Boolean.parseBoolean(System.getProperty("crow.hexDump", "true"));
-	
+
 	private static final Map<String, MessageWrapper> heartbeatMap = 
 			NameableServiceLoader.getLoader(MessageWrapper.class).getServices();
 	
@@ -36,29 +35,29 @@ public class ClientChannelInitializer extends ChannelInitializer<SocketChannel>{
 	
 	private ChannelListener listener;
 	
+	private ChannelGroup channelGroup;
+	
 	private Timer timer;
 	
 	private final long heartbeatInterval;
 	
 	private final long readerIdleTime;
 	
-	/**
-	 * netty 管道初始化器
-	 * @param url
-	 * @param listener
-	 * @param timer
-	 */
-	public ClientChannelInitializer(URL url, ChannelListener listener, final Timer timer){
+	private EventExecutorGroup  executionHandler;
+	
+	public ServerChannelInitializer(
+			URL url, ChannelListener listener, 
+			ChannelGroup channelGroup, 
+			final Timer timer,
+			final EventExecutorGroup executionHandler){
 		
 		this.url = url;
 		this.listener = listener;
+		this.channelGroup = channelGroup;
 		this.heartbeatInterval = Long.parseLong(url.getParameter(Constants.HEARTBEAT_INTERVAL));
 		this.readerIdleTime = heartbeatInterval * 3;
 		this.timer = timer;
-	}
-	
-	public ClientChannelInitializer(URL url, ChannelListener listener){
-		this(url,listener,null);
+		this.executionHandler = executionHandler;
 	}
 	
 	@Override
@@ -69,21 +68,9 @@ public class ClientChannelInitializer extends ChannelInitializer<SocketChannel>{
 		pipeline.addLast("LOGGING_HANDLER",LOGGING_HANDLER);
 		
 		String maxMsgSize = url.getParameter(Constants.MAX_MSG_SIZE);
-		
-		int maxFrameLength;
-		
-		if (
-				null == maxMsgSize ||
-				"".equals(maxMsgSize.trim()) ||
-				(Integer.parseInt(maxMsgSize) <= 0)){
-			maxFrameLength = Constants.DEFAULT_MAX_MSG_SIZE;
-		} else {
-			maxFrameLength = Integer.parseInt(maxMsgSize);
-		}
-		
+		int maxFrameLength = maxMsgSize == null ? Constants.DEFAULT_MAX_MSG_SIZE : Integer.parseInt(maxMsgSize);
 		LengthFieldBasedFrameDecoder lenDecoder = 
-				((AbstractEncoder)CodecFactory.getEncoder(url)).getLengthFieldBasedFrameDecoder(maxFrameLength);
-		
+				((AbstractDecoder)CodecFactory.getDecoder(url)).getLengthFieldBasedFrameDecoder(maxFrameLength);
 		if (null != lenDecoder){
 			pipeline.addLast("LengthFieldBasedFrameDecoder", lenDecoder);
 		}
@@ -95,31 +82,20 @@ public class ClientChannelInitializer extends ChannelInitializer<SocketChannel>{
 		if (null != heartbeat && heartbeatInterval > 0){
 			Request heartbeatMessage = heartbeat.wrapHearbeat(Constants.DEFAULT_PROTOCOL_VERSION);
 			if (null != heartbeatMessage){
-				// netty3
-				// idle handle 会发送心跳包（heartbeatMessage），需要经过codec
-				/*
+				// idle handler 会发送heartbeatMessage,需要经过codec
 				pipeline.addLast(
 						"idleStateHandler", 
 						new IdleStateHandler(
-								timer, 
-								readerIdleTime, 
-								heartbeatInterval, 
-								0, 
+								readerIdleTime,
+								heartbeatInterval,
+								0,
 								TimeUnit.MILLISECONDS));
-				*/
-				pipeline.addLast(
-						"idleStateHandler", 
-						new IdleStateHandler(
-								readerIdleTime, 
-								heartbeatInterval, 
-								0, 
-								TimeUnit.MILLISECONDS));
-				pipeline.addLast("idleHandler",new NettyIdleChannelHandler(readerIdleTime,heartbeatInterval,heartbeatMessage));
+				pipeline.addLast("idleHandler", new NettyIdleChannelHandler(readerIdleTime, heartbeatMessage));
 			}
 		}
 		
-		// business logic
-		pipeline.addLast("nettyClientChannelHandler", new NettyClientChannelHandler(url,listener));
+		// bussiness logic
+		pipeline.addLast(executionHandler, "nettyServerChannelHandler", new NettyServerChannelHandler(url, listener, channelGroup));
 	}
 
 }

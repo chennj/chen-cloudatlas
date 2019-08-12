@@ -152,4 +152,9 @@ public class CrowServerContext {
 			scList.add(sc1);
 		}
 	}
+
+	public static Map<String, ServiceConfig> getServiceConfigRpcMap() {
+		
+		return serviceConfigRpcMap;
+	}
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.chen.cloudatlas.crow.common.Constants;
+import org.chen.cloudatlas.crow.common.DcType;
 import org.chen.cloudatlas.crow.common.SerializationType;
 import org.chen.cloudatlas.crow.common.SpringContextUtil;
 import org.chen.cloudatlas.crow.common.URL;
@@ -15,7 +16,9 @@ import org.chen.cloudatlas.crow.config.ProtocolConfig;
 import org.chen.cloudatlas.crow.config.ServiceConfig;
 import org.chen.cloudatlas.crow.remote.RemoteException;
 import org.chen.cloudatlas.crow.remote.Server;
+import org.chen.cloudatlas.crow.remote.impl.ExchangeHttpServer;
 import org.chen.cloudatlas.crow.remote.impl.NettyServer;
+import org.chen.cloudatlas.crow.remote.impl.UndertowServer;
 import org.chen.cloudatlas.crow.server.PayloadListener;
 import org.tinylog.Logger;
 
@@ -63,13 +66,13 @@ public class ServerSideBooter implements CrowBootable{
 						// 要么在<protocol>中手工指定listener
 						if (serverPayloadListener != null && !StringUtils.isEmpty(one.getListener())){
 							
-							throw new RemoteException("you can not set serverPayloadListener in ServerSideBooter and listener in "
+							throw new RuntimeException("you can not set serverPayloadListener in ServerSideBooter and listener in "
 									+ " <protocol> simultaneously, choose one.");
 						}
 						// 如果是server，则serverPayloadHandler必须不为null
 						if (serverPayloadListener == null && StringUtils.isEmpty(one.getListener())){
 							
-							throw new RemoteException("serverListener must be set, either set listener in <protocol>"
+							throw new RuntimeException("serverListener must be set, either set listener in <protocol>"
 									+ " or set serverPayloadListener in ServerSideBooter");
 						}
 						
@@ -125,6 +128,36 @@ public class ServerSideBooter implements CrowBootable{
 				}
 			} // -- end for (ProtocolConfig one
 		}
+	}
+
+	private <T> void export(Class<T> interfaceClass, String serviceVersion, DcType dc) {
+		
+		ServiceConfig sConfig 	= CrowServerContext.getServiceConfigByInterface(interfaceClass.getName(), serviceVersion);
+		ProtocolConfig pConfig	= sConfig.getProtocol();
+		MonitorConfig mConfig	= sConfig.getMonitorConfig();
+		
+		Map<String, String> parameters = new HashMap<>();
+		parameters.put(Constants.HEARTBEAT_INTERVAL, String.valueOf(pConfig.getHeartbeatInterval()));
+		parameters.put(Constants.PROTOCOL_VERSION, pConfig.getVersion());
+		parameters.put(Constants.PROTOCOL_ID, pConfig.getId());
+		parameters.put(Constants.SERIALIZATION_TYPE, pConfig.getSerializationType().getText());
+		parameters.put(Constants.COMPRESS_ALGORITHM, pConfig.getCompressAlgorithm().getText());
+		parameters.put(Constants.MAX_MSG_SIZE, String.valueOf(pConfig.getMaxMsgSize()));
+		parameters.put(Constants.APPLICATION, CrowServerContext.getApplicationName());
+		parameters.put(Constants.DC, sConfig.getApplicationConfig().getDc().getText());
+		parameters.put(Constants.GROUP, pConfig.getApplicationConfig().getDc().getText());
+		parameters.put(Constants.SERVICE_VERSION, serviceVersion);
+		
+		if (null != mConfig){
+			parameters.put(Constants.MONITOR_URLS, mConfig.getUrls());
+			parameters.put(Constants.MONITOR_INTERVAL, String.valueOf(pConfig.getMaxThreads()));
+		}
+		
+		parameters.put(Constants.CROW_NETTY_EXECUTOR_SIZE_KEY, String.valueOf(pConfig.getMaxThreads()));
+		
+		URL url = new URL(pConfig.getCodec(), pConfig.getIp(), pConfig.getPort(), interfaceClass.getName(), parameters);
+		ServiceExport result = new ServiceExport<T>(sConfig);
+		result.doExport(url);
 	}
 
 	/**

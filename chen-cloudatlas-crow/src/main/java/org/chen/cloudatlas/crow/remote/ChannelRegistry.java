@@ -145,4 +145,11 @@ public class ChannelRegistry {
 			}
 		}
 	}
+
+	public static void unregisterChannel(io.netty.channel.Channel channel) {
+		
+		if (null != channel){
+			unregisterChannel((InetSocketAddress)channel.remoteAddress());
+		}
+	}
 }
