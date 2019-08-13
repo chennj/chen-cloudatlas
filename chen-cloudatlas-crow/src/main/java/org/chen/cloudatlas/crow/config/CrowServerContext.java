@@ -157,4 +157,16 @@ public class CrowServerContext {
 		
 		return serviceConfigRpcMap;
 	}
+
+	public static List<ServiceConfig> getServiceListByProtocol(ProtocolConfig protocolConfig) {
+
+		return protocolToServiceMap.get(protocolConfig);
+	}
+
+	public static ServiceConfig getServiceConfigByInterface(String interfaceCalss, String serviceVersion) {
+		
+		return serviceConfigRpcMap.get(
+				KeyUtil.getServiceKey(interfaceCalss, serviceVersion)
+				);
+	}
 }

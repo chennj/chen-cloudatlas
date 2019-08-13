@@ -124,6 +124,7 @@ public class ServerSideBooter implements CrowBootable{
 				} // -- end if (serializationType.BINARY
 				
 				if (one.getHttpPort() > 0){
+					// 将http请求转发至ApiRouting处理
 					new ExchangeHttpServer(new UndertowServer(one.getIp(), one.getHttpPort()), one);
 				}
 			} // -- end for (ProtocolConfig one

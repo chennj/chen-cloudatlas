@@ -159,4 +159,6 @@ public final class Constants {
 	public static final int DEFAULT_SOCKET_TIMEOUT = 
 			Integer.parseInt(
 					System.getProperty("DEFAULT_SOCKET_TIMEOUT",String.valueOf(5 * 1000)));
+
+	public static final String RETURN_TYPE = "returnType";
 }

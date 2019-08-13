@@ -141,7 +141,7 @@ public abstract class AbstractServerPayloadListener extends AbstractCrowControll
 		}
 
 		@Override
-		public void destory() {
+		public void destroy() {
 			
 		}
 
@@ -150,7 +150,7 @@ public abstract class AbstractServerPayloadListener extends AbstractCrowControll
 		}
 
 		@Override
-		public String getInvokerKey() {
+		public String getInvokeKey() {
 			return null;
 		}
 
@@ -223,8 +223,8 @@ public abstract class AbstractServerPayloadListener extends AbstractCrowControll
 		}
 
 		@Override
-		public void destory() {
-			invoker.destory();
+		public void destroy() {
+			invoker.destroy();
 		}
 
 		@Override
@@ -234,8 +234,8 @@ public abstract class AbstractServerPayloadListener extends AbstractCrowControll
 		}
 
 		@Override
-		public String getInvokerKey() {
-			return invoker.getInvokerKey();
+		public String getInvokeKey() {
+			return invoker.getInvokeKey();
 		}
 
 		@Override

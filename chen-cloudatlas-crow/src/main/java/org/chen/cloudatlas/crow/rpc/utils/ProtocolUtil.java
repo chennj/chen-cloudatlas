@@ -1,8 +1,9 @@
 package org.chen.cloudatlas.crow.rpc.utils;
 
+import org.apache.commons.lang.StringUtils;
 import org.chen.cloudatlas.crow.common.Constants;
 import org.chen.cloudatlas.crow.common.URL;
-import org.springframework.util.StringUtils;
+
 
 /**
  * 
@@ -65,6 +66,11 @@ public class ProtocolUtil {
 		}
 
 		return sb.toString();
+	}
+
+	public static String serviceKey(URL url) {
+		
+		return serviceKey(url.getPort(),url.getPath(),url.getParameter(Constants.DC),url.getParameter(Constants.SERVICE_VERSION));
 	}
 
 }

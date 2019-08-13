@@ -22,6 +22,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.Timer;
 import io.netty.util.concurrent.DefaultEventExecutor;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorGroup;
 
@@ -81,7 +82,7 @@ public class NettyServer extends AbstractServer{
 		//MemoryAwareThreadPoolExecutor netty 4 已经抛弃
 		//eventExecutorGroup = new DefaultEventExecutor(
 		//		new MemoryAwareThreadPoolExecutor(maxThreads, 1048567, 1048567, 30, TimeUnit.SECONDS, new DefaultThreadFactory(executorThreadName)));
-		eventExecutorGroup = new DefaultEventExecutor(new DefaultThreadFactory(executorThreadName));
+		eventExecutorGroup = new DefaultEventExecutorGroup(maxThreads,new DefaultThreadFactory(executorThreadName));
 	}
 
 	@Override

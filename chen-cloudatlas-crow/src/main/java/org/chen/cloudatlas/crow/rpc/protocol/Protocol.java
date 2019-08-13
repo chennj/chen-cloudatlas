@@ -19,4 +19,6 @@ public interface Protocol extends NameableService{
 	<T> Exporter<T> export(Invoker<T> invoker) throws RpcException;
 	
 	<T> Invoker<T> refer(Class<T> type, URL url, CountDownLatch latch) throws RpcException;
+	
+	void destroy();
 }

@@ -152,4 +152,8 @@ public class ChannelRegistry {
 			unregisterChannel((InetSocketAddress)channel.remoteAddress());
 		}
 	}
+
+	public static boolean isChannelAvailable(String addressKey) {
+		return availableChannels.containsKey(addressKey);
+	}
 }

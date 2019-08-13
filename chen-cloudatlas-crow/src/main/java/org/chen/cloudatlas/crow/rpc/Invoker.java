@@ -24,9 +24,9 @@ public interface Invoker<T> {
 	
 	void setInterface(Class<T> interfaceClass);
 	
-	void destory();
+	void destroy();
 	
 	void setDc(DcType dc);
 	
-	String getInvokerKey();
+	String getInvokeKey();
 }
