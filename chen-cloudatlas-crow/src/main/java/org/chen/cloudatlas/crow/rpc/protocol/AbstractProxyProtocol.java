@@ -84,11 +84,46 @@ public abstract class AbstractProxyProtocol extends AbstractProtocol{
 
 			@Override
 			protected Result doInvoke(Invocation invocation) throws Exception {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
+				
+				try {
+					Result result = target.invoke(invocation);
+					Throwable e = result.getException();
+					if (null != e){
+						
+						for (Class<?> rpcException : rpcExceptions){
+							if (rpcException.isAssignableFrom(e.getClass())){
+								throw getRpcException(type, url, invocation, e);
+							}
+						}
+					}
+					return result;
+				} catch (RpcException e){
+					Logger.error("RpcException while invoking ", e);
+					if (e.getCode() == RpcException.UNKNOWN_EXCEPTION){
+						e.setCode(getErrorCode(e.getCause()));
+					}
+					throw e;
+				} catch (Exception e){
+					Logger.error("Exception while invoking ", e);
+					throw getRpcException(type, url, invocation, e);
+				}
+			}			
 		};
+		
+		invokers.add(invoker);
+		return invoker;
+	}
+
+	protected Exception getRpcException(Class<?> type, URL url, Invocation invocation, Throwable e) {
+		
+		RpcException re = new RpcException("failed to invoke remote service: " + type + ", method:"
+				+ invocation.getMethodName() + ", cause: " + e.getMessage(), e);
+		re.setCode(getErrorCode(e));
+		return re;
+	}
+
+	private int getErrorCode(Throwable e) {
+		return RpcException.UNKNOWN_EXCEPTION;
 	}
 
 	protected abstract <T> Destroyable doExport(T impl, Class<T> type, URL url) throws RpcException;

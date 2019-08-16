@@ -115,4 +115,9 @@ public class URL implements Serializable{
 	public String getProtocol() {
 		return this.protocol;
 	}
+
+	public Map<String, String> getParameters() {
+		return parameters;
+	}
+	
 }
