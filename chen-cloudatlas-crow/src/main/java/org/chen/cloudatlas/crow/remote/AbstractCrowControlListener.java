@@ -11,7 +11,7 @@ import org.chen.cloudatlas.crow.remote.support.crow.CrowResponse;
 import org.chen.cloudatlas.crow.remote.support.crow.CrowStatus;
 import org.tinylog.Logger;
 
-public class AbstractCrowControllListener {
+public class AbstractCrowControlListener {
 
 	/**
 	 * 是否被黑白名单拦截

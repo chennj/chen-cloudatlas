@@ -70,6 +70,8 @@ public final class Constants {
 	
 	public static final String IP_PORT_SEPERATOR = ":";
 	
+	public static final String DEFAULT_SERVICE_VERSION = "1.0";
+	
 	// regex
 	public static final Pattern PATTERN_IP_AND_PORT = Pattern.compile("(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):(\\d{1,5})");
 	public static final Pattern PATTERN_EMAIL = Pattern.compile("^\\s*\\w+(?:\\.{0,1}[\\w-]+)*@[a-zA-Z0-9]+(?:[-.][a-zA-Z0-9]+)*\\.[a-zA-Z]+\\s*$");

@@ -11,7 +11,7 @@ import org.chen.cloudatlas.crow.config.CrowServerContext;
 import org.chen.cloudatlas.crow.config.ServiceConfig;
 import org.chen.cloudatlas.crow.filter.BinaryFilter;
 import org.chen.cloudatlas.crow.filter.BinaryFilterChain;
-import org.chen.cloudatlas.crow.remote.AbstractCrowControllListener;
+import org.chen.cloudatlas.crow.remote.AbstractCrowControlListener;
 import org.chen.cloudatlas.crow.remote.Channel;
 import org.chen.cloudatlas.crow.remote.RemoteException;
 import org.chen.cloudatlas.crow.remote.Request;
@@ -34,7 +34,7 @@ import org.tinylog.Logger;
  * @author chenn
  *
  */
-public abstract class AbstractServerPayloadListener extends AbstractCrowControllListener implements PayloadListener{
+public abstract class AbstractServerPayloadListener extends AbstractCrowControlListener implements PayloadListener{
 
 	@Override
 	public void connected(Channel context) throws RemoteException {

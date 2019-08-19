@@ -6,7 +6,6 @@ import java.util.Map;
 import javax.print.DocFlavor.URL;
 
 import org.chen.cloudatlas.crow.common.Constants;
-import org.chen.cloudatlas.crow.common.ThrottleType;
 
 public enum CrowCodecVersion {
 
