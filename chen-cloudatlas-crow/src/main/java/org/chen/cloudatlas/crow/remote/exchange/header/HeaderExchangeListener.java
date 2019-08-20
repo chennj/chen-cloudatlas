@@ -1,8 +1,11 @@
 package org.chen.cloudatlas.crow.remote.exchange.header;
 
+import org.chen.cloudatlas.crow.common.DcType;
+import org.chen.cloudatlas.crow.config.CrowServerContext;
 import org.chen.cloudatlas.crow.remote.AbstractCrowControlListener;
 import org.chen.cloudatlas.crow.remote.Channel;
 import org.chen.cloudatlas.crow.remote.RemoteException;
+import org.chen.cloudatlas.crow.remote.exchange.DefaultFuture;
 import org.chen.cloudatlas.crow.remote.exchange.ExchangeChannel;
 import org.chen.cloudatlas.crow.remote.exchange.ExchangeListener;
 import org.chen.cloudatlas.crow.remote.exchange.ExchangeRequest;
@@ -66,37 +69,115 @@ public class HeaderExchangeListener extends AbstractCrowControlListener implemen
 	}
 	
 	@Override
-	public void connected(Channel context) throws RemoteException {
-		// TODO Auto-generated method stub
+	public void connected(Channel channel) throws RemoteException {
 		
+		ExchangeChannel exchangeChannel = HeaderExchangeChannel.getOrAddChannel(channel);
+		try {
+			listener.connected(exchangeChannel);
+		} finally {
+			HeaderExchangeChannel.removeChannelIfDisconnected(channel);
+		}
 	}
 
 	@Override
-	public void disconnected(Channel context) throws RemoteException {
-		// TODO Auto-generated method stub
+	public void disconnected(Channel channel) throws RemoteException {
 		
+		ExchangeChannel exchangeChannel = HeaderExchangeChannel.getOrAddChannel(channel);
+		try {
+			listener.disconnected(exchangeChannel);
+		} finally {
+			HeaderExchangeChannel.removeChannelIfDisconnected(channel);
+			handleChannelError(channel);
+		}
 	}
 
 	@Override
-	public void sent(Channel context, Object message) throws RemoteException {
-		// TODO Auto-generated method stub
+	public void sent(Channel channel, Object message) throws RemoteException {
 		
+		Exception exception = null;
+		try {
+			ExchangeChannel exchangeChannel = HeaderExchangeChannel.getOrAddChannel(channel);
+			try {
+				listener.sent(exchangeChannel, message);
+			} finally {
+				HeaderExchangeChannel.removeChannelIfDisconnected(channel);
+			}
+		} catch (Exception e){
+			Logger.error("error while sending message {}",e);
+			exception =  e;
+		}
+		
+		if (message instanceof ExchangeRequest){
+			ExchangeRequest req = (ExchangeRequest) message;
+			DefaultFuture.sent(channel, req);
+		}
+		
+		if (null != exception){
+			
+			if (exception instanceof RuntimeException){
+				throw (RuntimeException)exception;
+			} else if (exception instanceof RemoteException){
+				throw (RemoteException) exception;
+			} else {
+				throw new RemoteException(channel.getLocalAddress(),channel.getRemoteAddress(),exception.getMessage(),exception);
+			}
+		}
 	}
 
 	@Override
-	public void received(Channel context, Object message) throws RemoteException {
-		// TODO Auto-generated method stub
+	public void received(Channel channel, Object message) throws RemoteException {
 		
+		ExchangeChannel exchangeChannel = HeaderExchangeChannel.getOrAddChannel(channel);
+		try {
+			if (isRejected(channel, message, ExchangeResponse.class)){
+				// 被黑名单拦截
+				return;
+			}
+			
+			if (isThrottled(channel, message, ExchangeResponse.class)){
+				// 被流量限制拦截
+				return;
+			}
+			
+			if (message instanceof ExchangeRequest){
+				ExchangeRequest req = (ExchangeRequest) message;
+				if (req.isHeartbeat()){
+					Logger.debug("heart beat received from {}",channel.getRemoteAddress());
+				} else if (!req.isOneWay()){
+					ExchangeResponse res = handleRequest(exchangeChannel, req);
+					if (null != CrowServerContext.getConfig()){
+						res.setSourceDc((byte)CrowServerContext.getConfig().getApplicationConfig().getDc().toInt());
+					} else {
+						res.setSourceDc((byte)DcType.SHANGHAI.toInt());
+					}
+					channel.send(res);
+				} else {
+					listener.received(exchangeChannel, req.getData());
+				}
+			} else if (message instanceof ExchangeResponse){
+				handleResponse(channel, (ExchangeResponse)message);
+			} else {
+				listener.received(exchangeChannel, message);
+			}
+		} finally {
+			HeaderExchangeChannel.removeChannelIfDisconnected(channel);
+		}
 	}
 
 	@Override
-	public void caught(Channel context, Throwable exception) throws RemoteException {
-		// TODO Auto-generated method stub
+	public void caught(Channel channel, Throwable exception) throws RemoteException {
 		
+		ExchangeChannel exchangeChannel = HeaderExchangeChannel.getOrAddChannel(channel);
+		try {
+			listener.caught(exchangeChannel, exception);
+		} finally {
+			HeaderExchangeChannel.removeChannelIfDisconnected(channel);
+			handleChannelError(channel);
+		}
 	}
 
 	@Override
-	public Object reply(ExchangeChannel context, Object request) throws RemoteException {
+	public Object reply(ExchangeChannel channel, Object request) throws RemoteException {
 		// TODO Auto-generated method stub
 		return null;
 	}

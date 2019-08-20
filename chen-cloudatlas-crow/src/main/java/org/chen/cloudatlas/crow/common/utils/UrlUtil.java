@@ -1,9 +1,9 @@
 package org.chen.cloudatlas.crow.common.utils;
 
 import java.net.InetSocketAddress;
-import java.net.URL;
 
 import org.chen.cloudatlas.crow.common.Constants;
+import org.chen.cloudatlas.crow.common.URL;
 import org.springframework.util.StringUtils;
 
 public class UrlUtil {
@@ -24,7 +24,7 @@ public class UrlUtil {
 				url.getPort();
 	}
 
-	public static int getParameter(org.chen.cloudatlas.crow.common.URL url, String key,
+	public static int getParameter(URL url, String key,
 			int defaultValue) {
 		
 		if (null == url){
@@ -40,7 +40,7 @@ public class UrlUtil {
 		}
 	}
 	
-	public static String getParameter(org.chen.cloudatlas.crow.common.URL url, String key,
+	public static String getParameter(URL url, String key,
 			String defaultValue) {
 		
 		if (null == url){
@@ -55,4 +55,5 @@ public class UrlUtil {
 			return value;
 		}
 	}
+
 }
