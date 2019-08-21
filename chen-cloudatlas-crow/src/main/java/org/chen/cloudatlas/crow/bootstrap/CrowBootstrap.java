@@ -9,8 +9,11 @@ import java.util.Set;
 import org.chen.cloudatlas.crow.client.NoopChannelListener;
 import org.chen.cloudatlas.crow.client.ServiceRegistry;
 import org.chen.cloudatlas.crow.common.Constants;
+import org.chen.cloudatlas.crow.common.Protocols;
 import org.chen.cloudatlas.crow.common.Version;
 import org.chen.cloudatlas.crow.common.exception.ConfigInvalidException;
+import org.chen.cloudatlas.crow.common.thread.SingletonTimer;
+import org.chen.cloudatlas.crow.common.utils.DuplicatChecker;
 import org.chen.cloudatlas.crow.common.utils.NameableServiceLoader;
 import org.chen.cloudatlas.crow.config.ConfigUtil;
 import org.chen.cloudatlas.crow.config.CrowClientContext;
@@ -19,6 +22,7 @@ import org.chen.cloudatlas.crow.config.CrowConfigParser;
 import org.chen.cloudatlas.crow.config.RegistryConfig;
 import org.chen.cloudatlas.crow.manager.api.RegistryClient;
 import org.chen.cloudatlas.crow.manager.api.RegistryManager;
+import org.chen.cloudatlas.crow.monitor.api.MonitorFactory;
 import org.chen.cloudatlas.crow.remote.ChannelListener;
 import org.chen.cloudatlas.crow.server.AbstractServerPayloadListener;
 import org.tinylog.Logger;
@@ -96,6 +100,10 @@ public class CrowBootstrap implements CrowBootable{
 		 * 将本机作为一个服务提供者启动
 		 */
 		startAsServer(config);
+		
+		/**
+		 * 添加关闭钩子
+		 */
 		addShutdownHook();
 		
 		isStarted = true;
@@ -105,6 +113,10 @@ public class CrowBootstrap implements CrowBootable{
 	private void checkVersion() {
 		
 		Logger.debug("Checking duplicate magpie version ...");
+		
+		if (!DuplicatChecker.check(Version.class)){
+			throw new RuntimeException("multiple crow framework version exist, please checkyou classpath and make sure there's only one.");
+		}
 	}
 
 	/**
@@ -150,7 +162,7 @@ public class CrowBootstrap implements CrowBootable{
 	 * @return
 	 * @throws Exception 
 	 */
-	public RegistryClient startRegistry(final CrowConfig config, final boolean connectOnNodeCreated) throws Exception {
+	public RegistryClient startRegistry(final CrowConfig config, final boolean connectOnNodeCreated) {
 		
 		final RegistryConfig registryConfig = config.getRegistryConfig();
 		this.hasZk = 
@@ -172,6 +184,13 @@ public class CrowBootstrap implements CrowBootable{
 		}
 		
 		return registryClient;
+	}
+	
+	public void initClientBooter(CrowConfig config){
+		
+		ChannelListener listener = clientListener == null ? new NoopChannelListener() : clientListener;
+		clientSideBooter = new ClientSideBooter(config,listener);
+		clientSideBooter.init();
 	}
 
 	public void startAsClient(CrowConfig config) {
@@ -198,9 +217,52 @@ public class CrowBootstrap implements CrowBootable{
 		serverSideBooter = new ServerSideBooter(config, serverListener);
 	}
 	
-	public void shutDown() {
-		// TODO Auto-generated method stub
+	private void addShutdownHook() {
 		
+		// 'kill pid' 将触发shutdown，优雅的的关闭，'kill -9 pid'则不会。
+		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
+
+			@Override
+			public void run() {
+				Logger.info("addShutdownHook called, shutDown now.");
+				shutDown();
+			}
+			
+		}, "crowShutdownHookThread"));
+	}
+
+	public void shutDown() {
+		
+		if (!isStarted){
+			Logger.warn("'shutdown' method should not be invoked twice!");
+			return;
+		}
+		
+		if (serverSideBooter != null){
+			serverSideBooter.shutDown();
+		}
+		
+		if (clientSideBooter != null){
+			clientSideBooter.shutDown();
+		}
+		
+		if (registryClient != null){
+			registryClient.shutdown();
+		}
+		
+		SingletonTimer.getTimer().stop();
+		
+		MonitorFactory factory = NameableServiceLoader.getService(MonitorFactory.class, Protocols.CROW_RPC);
+		factory.stopMonitor();
+		isStarted = false;
+	}
+
+	public void setClientListener(ChannelListener clientListener) {
+		this.clientListener = clientListener;
+	}
+
+	public void setServerListener(AbstractServerPayloadListener serverListener) {
+		this.serverListener = serverListener;
 	}
 
 }

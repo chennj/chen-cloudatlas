@@ -16,16 +16,18 @@ import org.chen.cloudatlas.crow.remote.exchange.ExchangeClient;
 import org.chen.cloudatlas.crow.remote.exchange.ExchangeListener;
 import org.chen.cloudatlas.crow.remote.exchange.ExchangeListenerAdapter;
 import org.chen.cloudatlas.crow.remote.exchange.ExchangeServer;
+import org.chen.cloudatlas.crow.remote.exchange.header.HeaderExchangeClient;
 import org.chen.cloudatlas.crow.remote.exchange.header.HeaderExchangeListener;
 import org.chen.cloudatlas.crow.remote.exchange.header.HeaderExchangeServer;
+import org.chen.cloudatlas.crow.remote.impl.NettyClient;
 import org.chen.cloudatlas.crow.remote.impl.NettyServer;
 import org.chen.cloudatlas.crow.rpc.Context;
+import org.chen.cloudatlas.crow.rpc.Exporter;
 import org.chen.cloudatlas.crow.rpc.Invocation;
 import org.chen.cloudatlas.crow.rpc.Invoker;
 import org.chen.cloudatlas.crow.rpc.RpcException;
 import org.chen.cloudatlas.crow.rpc.impl.RpcInvocation;
 import org.chen.cloudatlas.crow.rpc.protocol.AbstractProtocol;
-import org.chen.cloudatlas.crow.rpc.protocol.Exporter;
 import org.tinylog.Logger;
 
 public class CrowProtocol extends AbstractProtocol{
@@ -96,7 +98,7 @@ public class CrowProtocol extends AbstractProtocol{
 		private void invoke(Channel channel, String methodKey) {
 			
 			Invocation invocation = createInvocation(channel, channel.getUrl(), methodKey);
-			if (null == invocation){
+			if (null != invocation){
 				try {
 					received(channel, invocation);
 				} catch (Exception e){
@@ -148,7 +150,7 @@ public class CrowProtocol extends AbstractProtocol{
 		return instance;
 	}
 	
-	private boolean isClientSide(Channel channel){
+	public boolean isClientSide(Channel channel){
 		
 		InetSocketAddress address = channel.getRemoteAddress();
 		URL url = channel.getUrl();
@@ -269,6 +271,53 @@ public class CrowProtocol extends AbstractProtocol{
 		return clients;
 	}
 
+	private ExchangeClient initClient(URL url, CountDownLatch latch) {
+		
+		NettyClient nc = NettyClient.getOrAddClient(url, new HeaderExchangeListener(requestListener));
+		final ExchangeClient client = new HeaderExchangeClient(nc);
+		String threadName = "crow-rpc-retry-connect-" + url.getHostAndPort();
+		
+		Thread t = new Thread(new Runnable(){
+
+			@Override
+			public void run() {
+				
+				for (;;){
+					
+					try {
+						if (null != client && !client.isConnected()){
+							client.connect();
+							Logger.info("successfully connected to {}",url.getHostAndPort());
+						}
+					} catch (RemoteException e){
+						Logger.error("can not connect to {}",url.getHostAndPort());
+						Logger.warn("will retry to connect to {} after {} seconds {}",
+								url.getHostAndPort(),
+								Constants.DEFAULT_RETRY_CONNECT_INTERVAL / 1000,
+								e);
+						try {
+							Thread.sleep(Constants.DEFAULT_RETRY_CONNECT_INTERVAL);
+						} catch (InterruptedException ie){
+							Logger.warn("sleep is interrupted.{}",ie);
+						}
+						continue;
+					}
+					
+					if (null != latch){
+						latch.countDown();
+					}
+					break;
+				}
+			}
+			
+		},threadName);
+		
+		t.setDaemon(true);
+		t.start();
+		
+		return client;
+	}
+
 	@Override
 	public String getName() {
 		return Protocols.CROW_RPC;
@@ -280,15 +329,21 @@ public class CrowProtocol extends AbstractProtocol{
 		for (String key : serverMap.keySet()){
 			
 			ExchangeServer server = serverMap.remove(key);
-			if (null == server){
+			if (null != server){
 				
 				try {
 					if (Logger.isInfoEnabled()){
 						Logger.info("close crow server: " + server.getLocalAddress());
 					}
+					server.shutDown();
+				} catch (Exception e){
+					Logger.warn("error occurs while shutting down: {}",e);
 				}
 			}
 		}
+		
+		super.destroy();
+		instance = null;
 	}
 
 }

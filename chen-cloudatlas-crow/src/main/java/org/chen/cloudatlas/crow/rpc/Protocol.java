@@ -1,11 +1,9 @@
-package org.chen.cloudatlas.crow.rpc.protocol;
+package org.chen.cloudatlas.crow.rpc;
 
 import java.util.concurrent.CountDownLatch;
 
 import org.chen.cloudatlas.crow.common.NameableService;
 import org.chen.cloudatlas.crow.common.URL;
-import org.chen.cloudatlas.crow.rpc.Invoker;
-import org.chen.cloudatlas.crow.rpc.RpcException;
 
 /**
  * 

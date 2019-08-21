@@ -32,6 +32,7 @@ public class ServiceConfig<T> extends AbstractConfig {
 	@XmlAttribute
 	private String description;
 	
+	@SuppressWarnings("rawtypes")
 	@XmlAttribute
 	@XmlIDREF
 	private ProtocolConfig protocol;
@@ -110,10 +111,12 @@ public class ServiceConfig<T> extends AbstractConfig {
 		this.description = description;
 	}
 
+	@SuppressWarnings("rawtypes")
 	public ProtocolConfig getProtocol() {
 		return protocol;
 	}
 
+	@SuppressWarnings("rawtypes")
 	public void setProtocol(ProtocolConfig protocol) {
 		this.protocol = protocol;
 	}
@@ -285,6 +288,7 @@ public class ServiceConfig<T> extends AbstractConfig {
 		return result;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@JSONField(serialize=false,deserialize=false)
 	public T getImpl(){
 		T result = null;

@@ -1,5 +1,6 @@
 package org.chen.cloudatlas.crow.rpc.protocol;
 
+import org.chen.cloudatlas.crow.rpc.Exporter;
 import org.chen.cloudatlas.crow.rpc.Invoker;
 
 public abstract class AbstractExporter<T> implements Exporter<T> {

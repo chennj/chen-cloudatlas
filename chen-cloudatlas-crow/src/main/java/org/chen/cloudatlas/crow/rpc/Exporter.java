@@ -1,6 +1,4 @@
-package org.chen.cloudatlas.crow.rpc.protocol;
-
-import org.chen.cloudatlas.crow.rpc.Invoker;
+package org.chen.cloudatlas.crow.rpc;
 
 /**
  * 

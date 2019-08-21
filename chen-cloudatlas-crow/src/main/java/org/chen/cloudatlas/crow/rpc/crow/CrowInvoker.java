@@ -1,5 +1,6 @@
 package org.chen.cloudatlas.crow.rpc.crow;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -8,13 +9,18 @@ import org.chen.cloudatlas.crow.common.URL;
 import org.chen.cloudatlas.crow.common.utils.UrlUtil;
 import org.chen.cloudatlas.crow.remote.RemoteException;
 import org.chen.cloudatlas.crow.remote.exchange.ExchangeClient;
+import org.chen.cloudatlas.crow.remote.exchange.ResponseFuture;
 import org.chen.cloudatlas.crow.rpc.Invocation;
+import org.chen.cloudatlas.crow.rpc.InvocationFilterContext;
 import org.chen.cloudatlas.crow.rpc.Invoker;
 import org.chen.cloudatlas.crow.rpc.Result;
 import org.chen.cloudatlas.crow.rpc.RpcException;
 import org.chen.cloudatlas.crow.rpc.impl.RpcInvocation;
 import org.chen.cloudatlas.crow.rpc.impl.RpcResult;
 import org.chen.cloudatlas.crow.rpc.protocol.AbstractInvoker;
+import org.chen.cloudatlas.crow.rpc.utils.RpcUtil;
+import org.springframework.util.StringUtils;
+import org.tinylog.Logger;
 
 public class CrowInvoker<T> extends AbstractInvoker<T> {
 
@@ -73,7 +79,11 @@ public class CrowInvoker<T> extends AbstractInvoker<T> {
 				currentClient.send(inv,isSent);
 				return new RpcResult();
 			} else if (isAsync){
-				
+				ResponseFuture f = currentClient.request(inv,timeout);
+				return new RpcResult();
+			} else {
+				ResponseFuture f = currentClient.request(inv, timeout);
+				return resultTypeWrapper((Result)f.get(), invocation);
 			}
 		} catch (RemoteException e){
 			throw new RpcException(
@@ -88,5 +98,41 @@ public class CrowInvoker<T> extends AbstractInvoker<T> {
 			((RpcResult)result).setAttachment(Constants.RETURN_TYPE, invocation.getReturnType().getName());
 		}
 		return result;
+	}
+	
+	/**
+	 * 将用户在InvocationFilterContext线程变量中的attachments赋值到invocation中
+	 * @param invocation
+	 * @return
+	 */
+	private RpcInvocation doFilter(RpcInvocation invocation){
+		
+		String cstVersion = "version";
+		String cstProtocolVersion = "protocolVersion";
+		
+		Map<String, String> attachments = InvocationFilterContext.getContext().getSubAttachments();
+		if (null == attachments || attachments.size() == 0){
+			return invocation;
+		}
+		
+		try {
+			for (Map.Entry<String, String> entry : attachments.entrySet()){
+				
+				if (	entry.getKey() != null &&
+						StringUtils.isEmpty(invocation.getAttachment(entry.getKey())) && 
+						!entry.getKey().equals(cstProtocolVersion) && 
+						!entry.getKey().equals(cstVersion)){
+					invocation.getAttachments().put(entry.getKey(), entry.getValue());
+				} else {
+					Logger.error("error while InvocationFilter.getSubAttachments attachments key cannot be {}",entry.getKey());
+				}
+			}
+		} catch (Exception e){
+			Logger.error("error while InvocationFilter put attachments,msg:{}",e.getMessage());
+		}
+		
+		Logger.debug("after invocationfilter, invocation:{}",invocation.toString());
+		
+		return invocation;
 	}
 }

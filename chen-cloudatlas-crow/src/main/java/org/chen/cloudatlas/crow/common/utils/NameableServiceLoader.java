@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.chen.cloudatlas.crow.common.NameableService;
 import org.chen.cloudatlas.crow.common.annotation.Activate;
-import org.chen.cloudatlas.crow.manager.api.RegistryManager;
 
 /**
  * 服务加载工具，能够通过名称（name）加载不同的SPI（Service Provider Interface）服务

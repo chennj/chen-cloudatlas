@@ -20,19 +20,19 @@ public interface RegistryClient {
 	 * 启用<br>
 	 * @param listener
 	 */
-	void start(RegistryConnectionStateListener listener) throws Exception;
+	void start(RegistryConnectionStateListener listener);
 	
 	/**
 	 * 停用<br>
 	 */
-	void shutdown()  throws Exception;
+	void shutdown();
 	
 	/**
 	 * 获取连接状态<br>
 	 * @see org.chen.cloudatlas.crow.manager.api.RegistryConnectionState
 	 * @return
 	 */
-	RegistryConnectionState getState()  throws Exception;
+	RegistryConnectionState getState();
 	
 	/**
 	 * 注册提供者(provider)<br>

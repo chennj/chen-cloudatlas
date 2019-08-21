@@ -5,7 +5,11 @@ import java.lang.reflect.Method;
 import org.apache.commons.lang.StringUtils;
 import org.chen.cloudatlas.crow.common.URL;
 import org.chen.cloudatlas.crow.config.ServiceConfig;
+import org.chen.cloudatlas.crow.rpc.Exporter;
 import org.chen.cloudatlas.crow.rpc.Invoker;
+import org.chen.cloudatlas.crow.rpc.Protocol;
+import org.chen.cloudatlas.crow.rpc.ProxyFactory;
+import org.chen.cloudatlas.crow.rpc.proxy.JdkProxyFactory;
 import org.tinylog.Logger;
 
 
@@ -21,6 +25,7 @@ public class ServiceExport<T> {
 		this.config = config;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void doExport(URL url){
 		
 		if (!StringUtils.isEmpty(config.getProxyFactory())){
@@ -45,7 +50,7 @@ public class ServiceExport<T> {
 				expProtocol = (Protocol)Class.forName("org.chen.cloudatlas.crow.rpc.rmi.RmiProtocol").newInstance();
 				((AbstractProxyProtocol)expProtocol).setProxyFactory(proxyFactory);
 			} else {
-				Class cls = Class.forName("org.chen.cloudatlas.crow.rpc.crow.CrowProtocol");
+				Class<?> cls = Class.forName("org.chen.cloudatlas.crow.rpc.crow.CrowProtocol");
 				Method method = cls.getMethod("getCrowProtocol", new Class[0]);
 				Object obj = method.invoke(cls, new Object[0]);
 				expProtocol = new ProtocolFilterWrapper((Protocol)obj);

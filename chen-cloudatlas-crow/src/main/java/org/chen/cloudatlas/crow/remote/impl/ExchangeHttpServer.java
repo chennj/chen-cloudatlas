@@ -16,9 +16,10 @@ public class ExchangeHttpServer {
 
 	private HttpServer httpServer;
 	
+	@SuppressWarnings({ "rawtypes", "unused" })
 	private List<ServiceConfig> serviceConfig;
 	
-	public ExchangeHttpServer(HttpServer httpServer, ProtocolConfig protocolConfig){
+	public ExchangeHttpServer(HttpServer httpServer, ProtocolConfig<?> protocolConfig){
 		
 		this.httpServer = httpServer;
 		export(protocolConfig);
@@ -31,6 +32,7 @@ public class ExchangeHttpServer {
 	 * api->invoker:serviceConfig.getImpl(),method:methodName,params:{p1,p2}<br>
 	 * @param protocolConfig
 	 */
+	@SuppressWarnings("rawtypes")
 	private void export(ProtocolConfig protocolConfig) {
 		
 		List<ServiceConfig> serviceList = CrowServerContext.getServiceListByProtocol(protocolConfig);
