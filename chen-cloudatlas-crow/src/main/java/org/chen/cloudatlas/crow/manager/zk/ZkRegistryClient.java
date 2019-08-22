@@ -100,16 +100,16 @@ public class ZkRegistryClient implements RegistryClient{
 			final String path = ZkRegistryUtil.getProviderPath(dc, serviceId, providerNodeKey);
 			final String servicePath = ZkRegistryUtil.getServicePath(dc, serviceId);
 			
-			String persistentProviderPath = ZkRegistryUtil.getPersistenProviderPath(dc, serviceId, providerNodeKey);
+			String persistentProviderPath = ZkRegistryUtil.getPersistentProviderPath(dc, serviceId, providerNodeKey);
 			String backupProviderPath = ZkRegistryUtil.getBackupProviderPath(dc, serviceId, providerNodeKey);
 			
 			/**
 			 * step 1. 如果存在持久节点，则按照zk上的数据覆盖本地的配置
 			 */
-			if (	client.checkExists().forPath(persistenProviderPath) != null &&
+			if (	client.checkExists().forPath(persistentProviderPath) != null &&
 					!serviceConfig.isLocal()){
 				persistentServiceConfig = ZkRegistryUtil.deserializeNodeData(
-						client.getData().forPath(persistenProviderPath),
+						client.getData().forPath(persistentProviderPath),
 						ServiceConfig.class);
 				
 				serviceConfig.setStatus(persistentServiceConfig.getStatus());
