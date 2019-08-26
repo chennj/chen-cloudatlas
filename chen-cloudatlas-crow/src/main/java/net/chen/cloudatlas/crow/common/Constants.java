@@ -2,6 +2,8 @@ package net.chen.cloudatlas.crow.common;
 
 import java.util.regex.Pattern;
 
+import net.chen.cloudatlas.crow.common.cluster.LoadBalanceType;
+
 public final class Constants {
 
 	public static final String PROJECT_NAME = "CROW";
@@ -78,7 +80,7 @@ public final class Constants {
 	public static final Pattern PATTERN_PHONE = Pattern.compile("-?[1-9]\\d*");
 	public static final Pattern PATTERN_IP = Pattern.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
 	
-	int DEFAULT_MAXWEIGHT = 1000;
+	public static final int DEFAULT_MAXWEIGHT = 1000;
 	
 	/**
 	 * message header
@@ -172,4 +174,11 @@ public final class Constants {
 	public static final int DEFAULT_REGISTRY_CONNECTION_TIMEOUT_MS = 10 * 1000;
 
 	public static final int REGISTRY_CONNECTION_BLOCK = 10 * 1000;
+	
+	public static final LoadBalanceType DEFAULT_LOADBALANCER_TYPE = LoadBalanceType.RANDOM;
+
+	public static final int DEFAULT_WEIGHT = 0;
+	public static final int DEFAULT_PRIORITY = 0;
+	public static final int DEFAULT_GROUP = 1;
+	public static final String DEFAULT_DC = "sh";
 }

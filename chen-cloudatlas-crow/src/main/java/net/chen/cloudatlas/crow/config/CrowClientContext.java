@@ -123,4 +123,17 @@ public class CrowClientContext {
 	public static CrowConfig getConfig() {
 		return config;
 	}
+
+	public static boolean hasZk() {
+		
+		if (null == config){
+			// 针对 test case
+			return false;
+		}
+		
+		boolean hasZk = config.getRegistryConfig() != null 
+				&& config.getRegistryConfig().getAddress() != null
+				&& !config.getRegistryConfig().getAddress().trim().isEmpty();
+		return hasZk;
+	}
 }

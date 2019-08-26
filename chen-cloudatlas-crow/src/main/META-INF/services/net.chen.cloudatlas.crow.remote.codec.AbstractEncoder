@@ -1,0 +1,3 @@
+net.chen.cloudatlas.crow.remote.codec.crow.CrowEncoderImpl
+net.chen.cloudatlas.crow.remote.exchange.ExchangeEncoderImpl
+net.chen.cloudatlas.crow.retmote.codec.crowhead.CrowEncoderImpl

@@ -1,0 +1,8 @@
+# Crow Wrapper
+net.chen.cloudatlas.crow.remote.support.crow.CrowMessageWrapper
+# Crow exchange Wrapper
+net.chen.cloudatlas.crow.remote.support.exchange.ExchangeMessageWarpper
+# RMIF Wrapper
+net.chen.cloudatlas.crow.remote.support.rmif.RMIFMessageWrapper
+# crowhead Wrapper
+net.chen.cloudatlas.crow.remote.support.crowhead.CrowheadMessageWrapper

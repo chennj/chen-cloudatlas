@@ -1,3 +1,0 @@
-org.chen.cloudatlas.crow.common.serialize.jdk.JdkSerializer
-org.chen.cloudatlas.crow.common.serialize.hessian2.Hessian2Serializer
-org.chen.cloudatlas.crow.common.serialize.kryo.KryoSerializer

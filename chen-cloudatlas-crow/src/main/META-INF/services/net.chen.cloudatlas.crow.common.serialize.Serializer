@@ -1,0 +1,3 @@
+net.chen.cloudatlas.crow.common.serialize.jdk.JdkSerializer
+net.chen.cloudatlas.crow.common.serialize.hessian2.Hessian2Serializer
+net.chen.cloudatlas.crow.common.serialize.kryo.KryoSerializer

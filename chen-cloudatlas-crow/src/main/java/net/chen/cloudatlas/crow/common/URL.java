@@ -2,9 +2,12 @@ package net.chen.cloudatlas.crow.common;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.util.StringUtils;
@@ -158,5 +161,63 @@ public class URL implements Serializable{
 			numbers = new ConcurrentHashMap<String, Number>();
 		}
 		return numbers;
+	}
+
+	public String toIdentityString() {
+		return buildString(true);
+	}
+
+	private String buildString(boolean appendParamter, String... parameters) {
+		
+		StringBuilder sb = new StringBuilder();
+		
+		if (!StringUtils.isEmpty(protocol)){
+			sb.append(protocol).append("://");
+		}
+		
+		if (!StringUtils.isEmpty(host)){
+			sb.append(host);
+			if (port>0){
+				sb.append(":").append(port);
+			}
+		}
+		
+		if (!StringUtils.isEmpty(path)){
+			sb.append("/").append(path);
+		}
+		
+		if (appendParamter){
+			buildParameter(sb,true,parameters);
+		}
+		
+		return sb.toString();
+	}
+
+	private void buildParameter(StringBuilder sb, boolean concat, String[] parameters) {
+		
+		if (null != getParameters() && getParameters().size() > 0){
+			
+			List<String> includes = parameters == null || parameters.length == 0 ? null : Arrays.asList(parameters);
+			boolean first = true;
+			
+			for (Map.Entry<String, String> entry : new TreeMap<>(getParameters()).entrySet()){
+				
+				if (!StringUtils.isEmpty(entry.getKey()) 
+						&& (null == includes || includes.contains(entry.getKey()))){
+					if (first){
+						if (concat){
+							sb.append("?");
+						}
+						first = false;
+					} else {
+						sb.append("&");
+					}
+				}
+				
+				sb.append(entry.getKey());
+				sb.append("=");
+				sb.append(entry.getValue() == null ? "" : entry.getValue().trim());
+			}
+		}
 	}
 }
