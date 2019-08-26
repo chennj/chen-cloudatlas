@@ -168,6 +168,11 @@ public class NetUtil {
 		Logger.error("could not get local host ip address, will use 127.0.0.1 instead.");
 		return localAddress;
 	}
+
+	public static String getLocalHost() {
+		InetAddress address = getLocalAddress();
+		return address == null ? LOCALHOST : address.getHostAddress();
+	}
 	
 	
 }
