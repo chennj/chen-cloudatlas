@@ -1,0 +1,6 @@
+# Snappy-java
+org.chen.cloudatlas.crow.remote.compress.SnappyCompressor
+# jdk gzip
+org.chen.cloudatlas.crow.remote.compress.GZipCompressor
+# jdk zlib
+org.chen.cloudatlas.crow.remote.compress.ZlibCompressor
