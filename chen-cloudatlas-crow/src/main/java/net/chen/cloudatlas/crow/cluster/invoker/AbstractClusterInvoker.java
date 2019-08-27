@@ -2,6 +2,8 @@ package net.chen.cloudatlas.crow.cluster.invoker;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -13,6 +15,7 @@ import net.chen.cloudatlas.crow.cluster.LoadbalancerFactory;
 import net.chen.cloudatlas.crow.cluster.log.ClusterLoggerProxy;
 import net.chen.cloudatlas.crow.common.Constants;
 import net.chen.cloudatlas.crow.common.DcType;
+import net.chen.cloudatlas.crow.common.URL;
 import net.chen.cloudatlas.crow.common.Version;
 import net.chen.cloudatlas.crow.common.cluster.LoadBalanceType;
 import net.chen.cloudatlas.crow.common.utils.NetUtil;
@@ -282,6 +285,186 @@ public abstract class AbstractClusterInvoker implements SubInvoker{
 	}
 	
 	protected Map<DcType, List<Invoker>> getActiveInvokerGroup(List<Invoker> invokerList){
+		
+		Map<DcType, List<Invoker>> dcInvokerMap = new LinkedHashMap<DcType, List<Invoker>>();
+		for (Invoker invoker : invokerList){
+			
+			if (!invoker.isAvailable()){
+				continue;
+			}
+			
+			DcType dc = DcType.fromString(UrlUtil.getParameter(invoker.getUrl(), Constants.DC, Constants.DEFAULT_DC));
+			List<Invoker> list;
+			if (dcInvokerMap.containsKey(dc)){
+				list = dcInvokerMap.get(dc);
+			} else {
+				list = new ArrayList<Invoker>();
+			}
+			list.add(invoker);
+			dcInvokerMap.put(dc, list);
+		}
+		
+		return dcInvokerMap;
+	}
+	
+	private List<Invoker> getActiveInvoker(){
+		
+		LinkedHashMap<DcType, Boolean> dcStrategy= this.getDcStrategy();
+		
+		Iterator it = dcStrategy.entrySet().iterator();
+		List<Invoker> subList = new ArrayList<Invoker>();
+		
+		while (it.hasNext()){
+			
+			Map.Entry<DcType, Boolean> entry = (Map.Entry<DcType, Boolean>)it.next();
+			// entry.getVAlue 判断该dc是否具有调用策略true为可以调用，false忽略
+			if (entry.getValue() && invokerMap.containsKey(entry.getKey())){
+				
+				for (Invoker invoker : invokerMap.get(entry.getKey())){
+					if (invoker.isAvailable()){
+						subList.add(invoker);
+					}
+				}
+			}
+			
+			if (subList.size() == 0){
+				// 如果该中心没有任何可用的链路，则继续寻找其他中心
+				continue;
+			} else {
+				// 如果该中心有可用的链路，则不在查找其他中心
+				break;
+			}
+		}
+		
+		return subList;
+	}
+	
+	protected List<Invoker> getActiveInvoker(DcType dc){
+		
+		if (null == dc){
+			return this.getActiveInvoker();
+		}
+		
+		List<Invoker> subList = new ArrayList<>();
+		
+		if (invokerMap.containsKey(dc) && invokerMap.get(dc) != null){
+			// map中存在该dc，并且该dc的策略时可以访问
+			List<Invoker> invokers = invokerMap.get(dc);
+			for (Invoker invoker : invokers){
+				if (invoker.isAvailable()){
+					subList.add(invoker);
+				}
+			}
+			return subList;
+		} else {
+			return null;
+		}
+	}
+	
+	protected List<Invoker> getAllInvoker(DcType dc){
+		
+		if (null != dc){
+			return invokerMap.get(dc);
+		}
+		
+		LinkedHashMap<DcType, Boolean> dcStrategy= this.getDcStrategy();
+		
+		Iterator it = dcStrategy.entrySet().iterator();
+		List<Invoker> invokerList = new ArrayList<Invoker>();
+		
+		while (it.hasNext()){
+			
+			Map.Entry<DcType, Boolean> entry = (Map.Entry<DcType, Boolean>)it.next();
+			// entry.getVAlue 判断该dc是否具有调用策略true为可以调用，false忽略
+			if (entry.getValue() && invokerMap.containsKey(entry.getKey())){
+				
+				invokerList = invokerMap.get(entry.getKey());
+			}
+			
+			if (invokerList.size() == 0){
+				// 如果该中心没有任何可用的链路，则继续寻找其他中心
+				continue;
+			} else {
+				// 如果该中心有可用的链路，则不在查找其他中心
+				break;
+			}
+		}
+		
+		return invokerList;
+		
+	}
+	
+	private LinkedHashMap<DcType, Boolean> getDcStrategy(){
+		
+		LinkedHashMap<DcType, Boolean> dcStrategy = null;
+		
+		if (null == referenceConfig){
+			dcStrategy = new LinkedHashMap<DcType, Boolean>();
+			dcStrategy.put(DcType.SHANGHAI, true);
+		} else {
+			dcStrategy = (LinkedHashMap<DcType, Boolean>)referenceConfig.getDcStrategy();
+		}
+		
+		return dcStrategy;
+	}
+
+	@Override
+	public boolean isAvailable() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Class getInterface() {
+		
+		return interfaceClass;
+	}
+
+	@Override
+	public URL getUrl() {
+		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public void insertInvoker(Invoker invoker) {
+		
+		if (null != invoker){
+			
+			while (invokers.contains(invoker)){
+				invokers.remove(invoker);
+			}
+			invokers.add(invoker);
+		}
+		insertToInvokerMap(invoker);
+	}
+
+	@Override
+	public void deleteInvoker(Invoker invoker) {
+		invokers.remove(invoker);
+		removeFromInvokerMap(invoker);
+	}
+
+	@Override
+	public void setInterface(Class interfaceClass) {
+		this.interfaceClass = interfaceClass;
+	}
+	
+	@Override
+	public void destroy(){
+		
+	}
+
+	public List<Invoker> getInvokers() {
+		return invokers;
+	}
+
+	public void setInvokers(List<Invoker> invokers) {
+		this.invokers = invokers;
+	}
+	
+	public Invoker getLastSelectedInvoker(){
+		return this.lastSelectedInvoker;
+	}
+	
 }
