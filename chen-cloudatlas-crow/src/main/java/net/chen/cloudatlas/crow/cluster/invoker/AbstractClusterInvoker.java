@@ -152,7 +152,7 @@ public abstract class AbstractClusterInvoker implements SubInvoker{
 	
 	protected abstract Result doInvoke(Invocation invocation) throws RpcException;
 	
-	protected void checkInvoker(List<Invoker> invokerList) throws RpcException{
+	protected void checkInvokers(List<Invoker> invokerList) throws RpcException{
 		
 		if (null == invokerList || invokerList.size() == 0){
 			throw new RpcException("failed to invoke. no urls available on the consumer "
@@ -162,7 +162,7 @@ public abstract class AbstractClusterInvoker implements SubInvoker{
 		}
 	}
 	
-	protected void chackSubInvoker(List<Invoker> invokerList) throws RemoteException{
+	protected void checkSubInvokers(List<Invoker> invokerList) throws RemoteException{
 		
 		if (null == invokerList || invokerList.size() == 0){
 			throw new RemoteException("failed to invoke. no urls available on the consumer "
