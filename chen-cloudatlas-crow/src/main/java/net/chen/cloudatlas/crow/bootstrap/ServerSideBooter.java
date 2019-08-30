@@ -30,7 +30,7 @@ import org.apache.commons.lang.StringUtils;
  * @author chenn
  *
  */
-public class ServerSideBooter implements CrowBootable{
+public class ServerSideBooter implements Bootable{
 
 	private CrowConfig config;
 	

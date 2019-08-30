@@ -40,7 +40,7 @@ public class CrowZkConnectionStateListener implements RegistryConnectionStateLis
 	
 	private final ClientSideBooter clientSideBooter;
 	
-	private final CrowBootstrap bootStrap;
+	private final Bootstrap bootStrap;
 	
 	private Object lock = new Object();
 	
@@ -48,7 +48,7 @@ public class CrowZkConnectionStateListener implements RegistryConnectionStateLis
 			CrowConfig config,
 			RegistryClient registryClient,
 			ClientSideBooter clientSideBooter,
-			CrowBootstrap bootStrap,
+			Bootstrap bootStrap,
 			boolean connectOnNodeCreated){
 		
 		this (
@@ -67,7 +67,7 @@ public class CrowZkConnectionStateListener implements RegistryConnectionStateLis
 			List<ServiceConfig> serviceConfigList,
 			List<ReferenceConfig> referenceConfigList, 
 			MonitorConfig monitorConfig, 
-			CrowBootstrap bootStrap,
+			Bootstrap bootStrap,
 			RegistryClient registryClient, 
 			ClientSideBooter clientSideBooter, 
 			boolean connectOnNodeCreated) {

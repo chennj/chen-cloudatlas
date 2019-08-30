@@ -181,4 +181,8 @@ public final class Constants {
 	public static final int DEFAULT_PRIORITY = 0;
 	public static final int DEFAULT_GROUP = 1;
 	public static final String DEFAULT_DC = "sh";
+
+	public static final int DEFAULT_RETRIES = 2;
+
+	public static final int DEFAULT_FORKS = 2;
 }

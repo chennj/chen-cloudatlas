@@ -136,4 +136,14 @@ public class CrowClientContext {
 				&& !config.getRegistryConfig().getAddress().trim().isEmpty();
 		return hasZk;
 	}
+
+	public static ReferenceConfig getReferenceConfig(String serviceId, String serviceVersion) {
+		
+		ReferenceConfig result = referenceConfigMap.get(KeyUtil.getServiceKey(serviceId, serviceVersion));
+		if (null == result){
+			throw new RuntimeException("serviceId " + serviceId 
+					+ " not found! be sure that serviceId in crow.xml equals the serviceId in code.");
+		}
+		return result;
+	}
 }

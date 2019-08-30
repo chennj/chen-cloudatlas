@@ -5,7 +5,7 @@ package net.chen.cloudatlas.crow.bootstrap;
  * @author chenn
  *
  */
-public interface CrowBootable {
+public interface Bootable {
 	
 	/**
 	 * 服务端或客户端启动

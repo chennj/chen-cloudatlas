@@ -24,7 +24,7 @@ import net.chen.cloudatlas.crow.rpc.utils.ProtocolUtil;
  * @author chenn
  *
  */
-public class ClientSideBooter implements CrowBootable{
+public class ClientSideBooter implements Bootable{
 
 	private ChannelListener clientListener;
 	
