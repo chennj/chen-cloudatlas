@@ -1,12 +1,16 @@
 package net.chen.cloudatlas.crow.client.impl;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.tinylog.Logger;
 
-import com.sun.xml.internal.bind.v2.schemagen.xmlschema.List;
-
+import net.chen.cloudatlas.crow.common.URL;
 import net.chen.cloudatlas.crow.common.cluster.FailType;
 import net.chen.cloudatlas.crow.config.ReferenceConfig;
+import net.chen.cloudatlas.crow.rpc.Invoker;
 import net.chen.cloudatlas.crow.rpc.SubInvoker;
+import net.chen.cloudatlas.crow.rpc.impl.OneToOneInvoker;
 
 public abstract class AbstractServiceControllerImpl {
 
@@ -37,4 +41,41 @@ public abstract class AbstractServiceControllerImpl {
 		
 		return subInvoker;
 	}
+	
+	public List<Invoker> getInvokers(){
+		
+		List<URL> urls = getReferenceConfig().getURLs();
+		String serviceId = getReferenceConfig().getServiceId();
+		List<Invoker> invokers = new CopyOnWriteArrayList<Invoker>();
+		
+		for (URL url : urls){
+			invokers.add(new OneToOneInvokerWrapper(new OneToOneInvoker(serviceId,url)));
+		}
+		
+		return invokers;
+	}
+	
+	public void insertInvoker(URL url){
+		String serviceId = getReferenceConfig().getServiceId();
+		subInvoker.insertInvoker(new OneToOneInvokerWrapper(new OneToOneInvoker(serviceId,url)));
+	}
+	
+	public void deleteInvoker(URL url){
+		String serviceId = getReferenceConfig().getServiceId();
+		subInvoker.deleteInvoker(new OneToOneInvokerWrapper(new OneToOneInvoker(serviceId,url)));
+	}
+	
+	private String getFailTypeClassName(FailType failStrategy){
+		String strategyName = failStrategy.getText();
+		return strategyName.substring(0,1).toUpperCase()+strategyName.substring(1);
+	}
+
+	public boolean isUrlsModified() {
+		return urlsModified;
+	}
+
+	public void setUrlsModified(boolean urlsModified) {
+		this.urlsModified = urlsModified;
+	}
+	
 }

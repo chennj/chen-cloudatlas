@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.tinylog.Logger;
 
+import net.chen.cloudatlas.crow.common.Constants;
 import net.chen.cloudatlas.crow.common.KeyUtil;
 import net.chen.cloudatlas.crow.common.utils.ValidatorUtil;
 
@@ -146,4 +147,14 @@ public class CrowClientContext {
 		}
 		return result;
 	}
+	
+	public static ReferenceConfig getReferenceConfigByInterface(String interfaceClass){
+		return getReferenceConfigByInterface(interfaceClass, Constants.DEFAULT_SERVICE_VERSION);
+	}
+	
+	public static ReferenceConfig getReferenceConfigByInterface(String interfaceClass, String serviceVersion){
+		return referenceConfigRpcMap.get(KeyUtil.getServiceKey(interfaceClass, serviceVersion));
+	}
+	
+	
 }

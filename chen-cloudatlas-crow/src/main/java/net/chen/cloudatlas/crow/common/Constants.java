@@ -185,4 +185,8 @@ public final class Constants {
 	public static final int DEFAULT_RETRIES = 2;
 
 	public static final int DEFAULT_FORKS = 2;
+
+	public static final int REGISTRY_CONNECTION_BLOCK_TIME = 10*1000;
+	// RPC GETsERVICE时阻塞，直到zk connected或连接不上
+	public static final long REGISTRY_CONNECTION_LATCH_TIMEOUT = REGISTRY_CONNECTION_BLOCK_TIME + 2*1000;
 }
