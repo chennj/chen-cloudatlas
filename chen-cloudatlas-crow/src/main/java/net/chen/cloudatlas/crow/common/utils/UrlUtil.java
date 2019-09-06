@@ -57,4 +57,8 @@ public class UrlUtil {
 		}
 	}
 
+	public static String getUrl(String ip, int port) {
+		return ip + Constants.IP_PORT_SEPERATOR + port;
+	}
+
 }

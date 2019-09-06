@@ -45,6 +45,13 @@ public abstract class MessageWrapper implements NameableService{
 	public abstract Request wrapRequest(Request request, Map<String, Object> attachments) throws RemoteException;
 	
 	/**
+	 * 从response对象中获取byte[]返回
+	 * @param response
+	 * @return
+	 */
+	public abstract byte[] decomposeResponse(Response response);
+	
+	/**
 	 * 以request的信息为基础，构建response
 	 * @param request
 	 * @param attachments 可以给协议传递个性化参数，共不同协议自行处理

@@ -320,4 +320,8 @@ public class ServiceConfig<T> extends AbstractConfig {
 		throw new MethodNotImplException();
 	}
 
+	public boolean isRpc() {
+		return implClass != null && !implClass.trim().isEmpty();
+	}
+
 }

@@ -155,6 +155,20 @@ public class CrowClientContext {
 	public static ReferenceConfig getReferenceConfigByInterface(String interfaceClass, String serviceVersion){
 		return referenceConfigRpcMap.get(KeyUtil.getServiceKey(interfaceClass, serviceVersion));
 	}
+
+	public static List<ReferenceConfig> getReferenceConfigList() {
+		return referenceConfigList;
+	}
+
+	public static void setReferenceConfigList(List<ReferenceConfig> referenceConfigList) {
+		CrowClientContext.referenceConfigList = referenceConfigList;
+	}
+
+	public static boolean isPasswordInitByRef(String serviceKey) {
+		return isPasswordInitByRefMap.get(serviceKey);
+	}
 	
-	
+	public static void  setPasswordForRef(String serviceKey, String password){
+		referencePasswordMap.put(serviceKey, password);
+	}
 }

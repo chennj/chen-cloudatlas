@@ -17,7 +17,12 @@ public class NamedThreadFactory implements ThreadFactory{
 		
 		this(namePrefix,true,Thread.NORM_PRIORITY);
 	}
-	
+
+	public NamedThreadFactory(String namePrefix, boolean isDaemon) {
+		
+		this(namePrefix,isDaemon,Thread.NORM_PRIORITY);
+	}
+
 	public NamedThreadFactory(String namePrefix, boolean isDaemon, int priority) {
 		
 		this.namePrefix = namePrefix;

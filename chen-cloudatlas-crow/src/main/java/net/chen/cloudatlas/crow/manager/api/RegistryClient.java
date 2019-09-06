@@ -153,6 +153,6 @@ public interface RegistryClient {
 	 * @return
 	 * @throws Exception
 	 */
-	int checkDcStrategy(DcType dc, String serviceKey) throws Exception;
+	int checkDcStrategy(DcType dc, String serviceKey);
 	
 }

@@ -72,6 +72,71 @@ public class URL implements Serializable{
 		this(protocol, host, port, null, parameters);
 	}
 
+	public static URL valueOf(String originUrl){
+		
+		if (StringUtils.isEmpty(originUrl)){
+			throw new IllegalArgumentException("url is null");
+		}
+		
+		originUrl = originUrl.trim();
+		String protocol = null;
+		String host = null;
+		int port = 0;
+		String path = null;
+		Map<String, String> parameters = null;
+		int i = originUrl.indexOf("?");
+		if (i>=0){
+			String[] parts = originUrl.substring(i+1).split("\\&");
+			parameters = new HashMap<>();
+			for(String part : parts){
+				part = part.trim();
+				if (part.length()>0){
+					int j = part.indexOf("=");
+					if (j>=0){
+						parameters.put(part.substring(0,j), part.substring(j+1));
+					} else {
+						parameters.put(part, part);
+					}
+				}
+			}
+			originUrl = originUrl.substring(0,i);
+		}
+		i = originUrl.indexOf("://");
+		if (i>=0){
+			if (i==0){
+				throw new IllegalStateException("url missing protocol:\""+originUrl+"\"");
+			}
+			protocol = originUrl.substring(0,i);
+			originUrl = originUrl.substring(i+3);
+		} else {
+			// case: file://path/to/file.txt
+			i = originUrl.indexOf(":/");
+			if (i>=0){
+				if (i==0){
+					throw new IllegalStateException("url missing protocol:\"" + originUrl + "\"");
+				}
+				protocol = originUrl.substring(0,i);
+				originUrl = originUrl.substring(i+1);
+			}
+		}
+		
+		i = originUrl.indexOf("/");
+		if (i>=0){
+			path = originUrl.substring(i+1);
+			originUrl = originUrl.substring(0,i);
+		}
+		
+		i = originUrl.indexOf(":");
+		if (i>=0 && i<originUrl.lastIndexOf(-1)){
+			port = Integer.parseInt(originUrl.substring(i+1));
+			originUrl = originUrl.substring(0,i);
+		}
+		if (originUrl.length()>0){
+			host = originUrl;
+		}
+		return new URL(protocol, host, port, path, parameters);
+	}
+	
 	public String getHostAndPort(){
 		return host + Constants.IP_PORT_SEPERATOR + port;
 	}

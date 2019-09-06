@@ -355,7 +355,7 @@ public class ZkRegistryClient implements RegistryClient{
 	}
 
 	@Override
-	public int checkDcStrategy(DcType dc, String serviceKey) throws Exception {
+	public int checkDcStrategy(DcType dc, String serviceKey) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

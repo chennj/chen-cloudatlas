@@ -156,4 +156,21 @@ public class ChannelRegistry {
 	public static boolean isChannelAvailable(String addressKey) {
 		return availableChannels.containsKey(addressKey);
 	}
+
+	public static void stopRetryChannel(String addressKey, boolean checkAvailability) {
+		
+		if (checkAvailability){
+			lock.lock();
+			try {
+				Channel goodChannel = availableChannels.get(addressKey);
+				if (null != goodChannel && goodChannel.isActive()){
+					unavailableChannels.remove(addressKey);
+				}
+			} finally {
+				lock.unlock();
+			}
+		} else {
+			unavailableChannels.remove(addressKey);
+		}
+	}
 }

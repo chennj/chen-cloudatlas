@@ -44,5 +44,5 @@ public interface ServiceController {
 	 * @return
 	 * @throws RemoteException
 	 */
-	byte[] acall(byte[] requestBytes, Map<String, Object> attachments) throws RemoteException;
+	void acall(byte[] requestBytes, Map<String, Object> attachments) throws RemoteException;
 }

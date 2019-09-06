@@ -472,4 +472,18 @@ public class ReferenceConfig<T> extends AbstractConfig {
 		
 		throw new MethodNotImplException();
 	}
+
+	public void setDcStrategy(DcType dc, boolean value) {
+		this.dcStrategy.put(dc, value);
+	}
+	
+	public void setDcStrategy(DcType dc, int value) {
+		
+		if (value==0){
+			// 0 表示没有经过手工切换，仍使用本地策略
+			return;
+		}
+		
+		this.dcStrategy.put(dc, value==1);
+	}
 }
