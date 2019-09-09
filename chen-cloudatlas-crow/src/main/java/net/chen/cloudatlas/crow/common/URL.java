@@ -16,9 +16,6 @@ import net.chen.cloudatlas.crow.common.utils.CollectionUtil;
 
 /**
  * 存放用户配置信息
- * <p><font color=red>
- * 有待完成
- * </font></p>
  * @author chenn
  *
  */
@@ -202,6 +199,10 @@ public class URL implements Serializable{
 	public String getProtocol() {
 		return this.protocol;
 	}
+	
+	public void setProtocol(String protocol){
+		this.protocol = protocol;
+	}
 
 	public Map<String, String> getParameters() {
 		return parameters;
@@ -284,5 +285,230 @@ public class URL implements Serializable{
 				sb.append(entry.getValue() == null ? "" : entry.getValue().trim());
 			}
 		}
+	}
+	
+	public URL addParameters(String... pairs){
+		
+		if (null == pairs || pairs.length == 0){
+			return this;
+		}
+		
+		if (pairs.length % 2 != 0){
+			throw new IllegalArgumentException("map pairs can not be odd number.");
+		}
+		
+		Map<String, String> map = new HashMap<String, String>();
+		int len = pairs.length / 2;
+		for (int i=0; i<len; i++){
+			map.put(pairs[2*i], pairs[2*i+1]);
+		}
+		return addParameters(map);
+	}
+	
+	public URL addParameters(Map<String, String> parameters){
+		
+		if (null == parameters || parameters.size() == 0){
+			return this;
+		}
+		
+		boolean hasAndEqual = true;
+		for (Map.Entry<String, String> entry : parameters.entrySet()){
+			
+			String value = getParameters().get(entry.getKey());
+			if (null==value || entry.getValue()==null ||!value.equals(entry.getValue())){
+				hasAndEqual = false;
+				break;
+			}
+		}
+		
+		if (hasAndEqual){
+			// 如果没有修改，直接返回
+			return this;
+		}
+		
+		Map<String, String> map = new HashMap<>();
+		map.putAll(parameters);
+		return new URL(protocol, host, port, path, map);
+	}
+	
+	public double getParameter(String key, double defaultValue){
+		
+		Number n = getNumbers().get(key);
+		if (null != n){
+			return n.doubleValue();
+		}
+		
+		String value = getParameter(key);
+		if (StringUtils.isEmpty(value)){
+			return defaultValue;
+		}
+		
+		double d = Double.parseDouble(value);
+		getNumbers().put(key, d);
+		return d;
+	}
+	
+	public float getParameter(String key, float defaultValue){
+		
+		Number n = getNumbers().get(key);
+		if (null != n){
+			return n.floatValue();
+		}
+		
+		String value = getParameter(key);
+		if (StringUtils.isEmpty(value)){
+			return defaultValue;
+		}
+		
+		float f = Float.parseFloat(value);
+		getNumbers().put(key, f);
+		return f;
+	}
+	
+	public long getParameter(String key, long defaultValue){
+		
+		Number n = this.getNumbers().get(key);
+		if (null!=n){
+			return n.longValue();
+		}
+		
+		String value = this.getParameter(key);
+		if (StringUtils.isEmpty(value)){
+			return defaultValue;
+		}
+		
+		long l = Long.parseLong(value);
+		this.getNumbers().put(key, l);
+		return l;
+	}
+	
+	public short getParameter(String key, short defaultValue){
+		
+		Number n = this.getNumbers().get(key);
+		if (null!=n){
+			return n.shortValue();
+		}
+		
+		String value = this.getParameter(key);
+		if (StringUtils.isEmpty(value)){
+			return defaultValue;
+		}
+		
+		short s = Short.parseShort(value);
+		this.getNumbers().put(key, s);
+		return s;
+	}
+	
+	public byte getParameter(String key, byte defaultValue){
+		
+		Number n = this.getNumbers().get(key);
+		if (null!=n){
+			return n.byteValue();
+		}
+		
+		String value = this.getParameter(key);
+		if (StringUtils.isEmpty(value)){
+			return defaultValue;
+		}
+		
+		byte b = Byte.parseByte(value);
+		this.getNumbers().put(key, b);
+		return b;
+	}
+	
+	public float getPositiveParamter(String key, float defaultValue){
+		
+		if (0>=defaultValue){
+			throw new IllegalArgumentException("defaultValue <= 0");
+		}
+		
+		float value = getParameter(key,defaultValue);
+		if (0>=value){
+			return defaultValue;
+		}
+		return value;
+	}
+	
+	public double getPositiveParamter(String key, double defaultValue){
+		
+		if (0>=defaultValue){
+			throw new IllegalArgumentException("defaultValue <= 0");
+		}
+		
+		double value = getParameter(key,defaultValue);
+		if (0>=value){
+			return defaultValue;
+		}
+		return value;
+	}
+	
+	public long getPositiveParamter(String key, long defaultValue){
+		
+		if (0>=defaultValue){
+			throw new IllegalArgumentException("defaultValue <= 0");
+		}
+		
+		long value = getParameter(key,defaultValue);
+		if (0>=value){
+			return defaultValue;
+		}
+		return value;
+	}
+	
+	public int getPositiveParamter(String key, int defaultValue){
+		
+		if (0>=defaultValue){
+			throw new IllegalArgumentException("defaultValue <= 0");
+		}
+		
+		int value = getParameter(key,defaultValue);
+		if (0>=value){
+			return defaultValue;
+		}
+		return value;
+	}
+	
+	public short getPositiveParamter(String key, short defaultValue){
+		
+		if (0>=defaultValue){
+			throw new IllegalArgumentException("defaultValue <= 0");
+		}
+		
+		short value = getParameter(key,defaultValue);
+		if (0>=value){
+			return defaultValue;
+		}
+		return value;
+	}
+	
+	public byte getPositiveParamter(String key, byte defaultValue){
+		
+		if (0>=defaultValue){
+			throw new IllegalArgumentException("defaultValue <= 0");
+		}
+		
+		byte value = getParameter(key,defaultValue);
+		if (0>=value){
+			return defaultValue;
+		}
+		return value;
+	}
+	
+	public char getParameter(String key, char defaultValue){
+		
+		String value = getParameter(key);
+		if (StringUtils.isEmpty(value)){
+			return defaultValue;
+		}
+		return value.charAt(0);
+	}
+	
+	public boolean getParameter(String key, boolean defaultValue){
+		
+		String value = getParameter(key);
+		if (StringUtils.isEmpty(value)){
+			return defaultValue;
+		}
+		return Boolean.parseBoolean(value);
 	}
 }
