@@ -12,6 +12,7 @@
 	<url>http://maven.apache.org</url>
 	<properties>
 	  	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	  	<version.bouncycastle>1.54</version.bouncycastle>
 	</properties>
 	<dependencies>
 		<!-- ref from parent -->
@@ -129,5 +130,11 @@
 	  		<artifactId>spring-expression</artifactId>
 	  	</dependency>
 		
+		<!-- 加解密 -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+	  		<version>${version.bouncycastle}</version>
+		</dependency>
 	</dependencies>
 </project>

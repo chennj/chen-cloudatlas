@@ -23,10 +23,6 @@ import net.chen.cloudatlas.crow.common.annotation.Activate;
  * <li>when getService(serviceName) called,corresponding cached impl instance will be returned</li>
  * </ul>
  * 
- * <b><font color=red>
- * 有待完成
- * </font></b>
- * 
  * @author chenn
  *
  * @param <T>
@@ -66,6 +62,11 @@ public class NameableServiceLoader<T extends NameableService> {
 		return services;
 	}
 	
+	/**
+	 * 按类型来获取ServiceLoader，如果某些类型从来没有获取过，则创建一个并缓存再map中
+	 * @param type
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends NameableService> NameableServiceLoader<T> getLoader(final Class<T> type){
 		
@@ -92,6 +93,11 @@ public class NameableServiceLoader<T extends NameableService> {
 		return loader;
 	}
 	
+	/**
+	 * get service with annotation {@code net.chen.cloudatlas.crow.common.annotation.Activate}
+	 * @param side
+	 * @return
+	 */
 	public List<T> getActiveServices(String side){
 		
 		List<T> result = new ArrayList<T>();
