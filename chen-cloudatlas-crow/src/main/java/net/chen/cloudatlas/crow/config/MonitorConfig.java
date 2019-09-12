@@ -8,9 +8,10 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 
+import net.chen.cloudatlas.crow.common.Constants;
 import net.chen.cloudatlas.crow.common.DcType;
 import net.chen.cloudatlas.crow.common.exception.ConfigInvalidException;
-import net.chen.cloudatlas.crow.common.exception.MethodNotImplException;
+import net.chen.cloudatlas.crow.common.utils.StringPropertyReplacer;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public class MonitorConfig extends AbstractConfig{
@@ -69,13 +70,16 @@ public class MonitorConfig extends AbstractConfig{
 	}
 
 	public void check() throws ConfigInvalidException {
-		// TODO Auto-generated method stub
-		throw new MethodNotImplException();
 	}
 
 	public void setDefaultValue() {
-		// TODO Auto-generated method stub
-		throw new MethodNotImplException();
+		if (this.monitorInterval == 0){
+			this.monitorInterval = Constants.DEFAULT_MONITOR_INTERVAL;
+		}
+		
+		if (null != urls && !urls.trim().isEmpty()){
+			urls = StringPropertyReplacer.replaceProperties(urls);
+		}
 	}
 	
 	/**

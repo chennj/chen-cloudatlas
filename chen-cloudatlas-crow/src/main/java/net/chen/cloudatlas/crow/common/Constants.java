@@ -2,6 +2,7 @@ package net.chen.cloudatlas.crow.common;
 
 import java.util.regex.Pattern;
 
+import net.chen.cloudatlas.crow.common.cluster.FailType;
 import net.chen.cloudatlas.crow.common.cluster.LoadBalanceType;
 
 public final class Constants {
@@ -78,8 +79,8 @@ public final class Constants {
 	public static final Pattern PATTERN_IP_AND_PORT = Pattern.compile("(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):(\\d{1,5})");
 	public static final Pattern PATTERN_EMAIL = Pattern.compile("^\\s*\\w+(?:\\.{0,1}[\\w-]+)*@[a-zA-Z0-9]+(?:[-.][a-zA-Z0-9]+)*\\.[a-zA-Z]+\\s*$");
 	public static final Pattern PATTERN_PHONE = Pattern.compile("-?[1-9]\\d*");
-	public static final Pattern PATTERN_IP = Pattern.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
-	
+	public static final Pattern PATTERN_IP = Pattern.compile("(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})");
+	public static final Pattern PATTERN_PORT = Pattern.compile("(\\d{1,5})");
 	public static final int DEFAULT_MAXWEIGHT = 1000;
 	
 	/**
@@ -189,4 +190,10 @@ public final class Constants {
 	public static final int REGISTRY_CONNECTION_BLOCK_TIME = 10*1000;
 	// RPC GETsERVICE时阻塞，直到zk connected或连接不上
 	public static final long REGISTRY_CONNECTION_LATCH_TIMEOUT = REGISTRY_CONNECTION_BLOCK_TIME + 2*1000;
+
+	public static long DEFAULT_MONITOR_INTERVAL = 1 * 60 * 1000; //1分钟
+
+	public static String COMMA_SEPARATOR = ",";
+
+	public static FailType DEFAULT_FAIL_TYPE = FailType.FAIL_OVER;
 }

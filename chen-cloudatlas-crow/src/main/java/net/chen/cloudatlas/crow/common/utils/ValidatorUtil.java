@@ -21,4 +21,8 @@ public class ValidatorUtil {
 	public static boolean validateIp(String ip) {
 		return Constants.PATTERN_IP.matcher(ip).matches();
 	}
+	
+	public static boolean validatePort(String port){
+		return Constants.PATTERN_PORT.matcher(port).matches();
+	}
 }

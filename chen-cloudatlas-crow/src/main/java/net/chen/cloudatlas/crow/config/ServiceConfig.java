@@ -7,13 +7,15 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlIDREF;
 
+import org.tinylog.Logger;
+
 import com.alibaba.fastjson.annotation.JSONField;
 
+import net.chen.cloudatlas.crow.common.Constants;
 import net.chen.cloudatlas.crow.common.SpringContextUtil;
 import net.chen.cloudatlas.crow.common.ThrottleType;
 import net.chen.cloudatlas.crow.common.exception.ConfigException;
 import net.chen.cloudatlas.crow.common.exception.ConfigInvalidException;
-import net.chen.cloudatlas.crow.common.exception.MethodNotImplException;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ServiceConfig<T> extends AbstractConfig {
@@ -311,13 +313,80 @@ public class ServiceConfig<T> extends AbstractConfig {
 	}
 	
 	public void check() throws ConfigInvalidException {
-		// TODO Auto-generated method stub
-		throw new MethodNotImplException();
+		
+		if (this.getRegistryConfig() == null || this.isRpc()){
+			return;
+		}
+		
+		if (serviceId != null && !serviceId.trim().isEmpty()){
+			String[] serviceIdAry = serviceId.split("_");
+			if (null == serviceIdAry || serviceIdAry.length<2){
+				Logger.error("\n in crow, serviceId need to be unique from other app, \n"
+						+ " which  should be named like sys_app_yourservice. \n"
+						+ " you should have at least one '_' in your serviceId or your \n"
+						+ " service will not be registered in zookeeper. \n");
+			} else {
+				String appName = serviceIdAry[0].toLowerCase();
+				if (appName.equals("server")
+						|| appName.equals("app")
+						|| appName.equals("application")
+						|| appName.equals("yourappname")){
+					throw new ConfigInvalidException("simple words like these('server','app','applicatin','yourappname')"
+							+ " should not be used as your app name");
+				}
+			}
+		}
 	}
 
 	public void setDefaultValue() {
-		// TODO Auto-generated method stub
-		throw new MethodNotImplException();
+		
+		if (weight == -1){
+			this.weight = 100;
+		}
+		
+		if (timeout == 0){
+			this.timeout = Constants.DEFAULT_NO_RESPONSE_TIMEOUT;
+		}
+		
+		if (this.description == null){
+			this.description = "";
+		}
+		
+		if (this.password == null){
+			this.password = "";
+		}
+		
+		if (this.serviceVersion == null){
+			this.serviceVersion = Constants.DEFAULT_SERVICE_VERSION;
+		}
+		
+		if (this.throttleType == null){
+			this.throttleType = ThrottleType.QPS;
+		}
+		
+		if (this.throttleValue <= 0){
+			this.throttleValue = 0;
+		}
+		
+		if (this.ipWhiteList != null){
+			String[] ss = this.ipWhiteList.split(",");
+			if (null != ss && ss.length>0){
+				for(int i=0; i<ss.length; i++){
+					this.ipWhiteSet.add(ss[i]);
+				}
+			}
+		}
+		
+		if (this.ipBlackList != null){
+			String[] ss = this.ipBlackList.split(",");
+			if (null != ss && ss.length>0){
+				for(int i=0; i<ss.length; i++){
+					this.ipBlackSet.add(ss[i]);
+				}
+			}
+		}
+		
+		this.springFeature = this.getApplicationConfig().getSpringFeature();
 	}
 
 	public boolean isRpc() {

@@ -2,6 +2,7 @@ package net.chen.cloudatlas.crow.config;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,6 +26,7 @@ import net.chen.cloudatlas.crow.common.cluster.LoadBalanceType;
 import net.chen.cloudatlas.crow.common.exception.ConfigException;
 import net.chen.cloudatlas.crow.common.exception.ConfigInvalidException;
 import net.chen.cloudatlas.crow.common.exception.MethodNotImplException;
+import net.chen.cloudatlas.crow.common.utils.StringPropertyReplacer;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ReferenceConfig<T> extends AbstractConfig {
@@ -57,6 +59,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
 	
 	@XmlAttribute
 	private long timeout;
+	
+	@XmlAttribute
+	private String weights;
 	
 	@XmlAttribute
 	private int forks;
@@ -330,10 +335,94 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
 	@JSONField(serialize=false,deserialize=false)
 	public void setDefaultValue() {
-		// TODO Auto-generated method stub
-		throw new MethodNotImplException();
+		
+		if (this.dcStrategy == null){
+			this.dcStrategy = new LinkedHashMap<>();
+		}
+		
+		if (dcStr == null){
+			dcStr = DcType.SHANGHAI.getText();
+			dc = DcType.fromString(dcStr.trim());
+		} else {
+			if (dcStr.split(Constants.COMMA_SEPARATOR).length > 1){
+				dc = DcType.ALL;
+			} else {
+				dc = DcType.fromString(dcStr.trim());
+			}
+		}
+		
+		if (this.urlGroupsMap == null){
+			initMap();
+		}
+		
+		if (!StringUtils.isEmpty(urls)){
+			urls = StringPropertyReplacer.replaceProperties(urls);
+			this.totalUrlCount = convert(this.urlGroupsMap, urls);
+		}
+		
+		if (!StringUtils.isEmpty(this.weights)){
+			weights = StringPropertyReplacer.replaceProperties(weights);
+			this.totalWeightCount = convert(this.weightGroupsMap, weights);
+		}
+		
+		// 支持${systemProperty=defaultValue}的格式，
+		// 让客户自定义system property覆盖
+		
+		if (this.loadBalanceStrategy == null){
+			this.loadBalanceStrategy = Constants.DEFAULT_LOADBALANCER_TYPE;
+		}
+		
+		if (this.failStrategy == null){
+			this.failStrategy = Constants.DEFAULT_FAIL_TYPE;
+		}
+		
+		if (this.retries == 0){
+			this.retries = Constants.DEFAULT_RETRIES;
+		}
+		
+		if (timeout <= 0){
+			this.isServiceTimeout = true;
+			timeout = Constants.DEFAULT_NO_RESPONSE_TIMEOUT;
+		}
+		
+		if (forks == 0){
+			this.timeout = Constants.DEFAULT_FORKS;
+		}
+		
+		// weights要与urls的元素个数相同（如果用户配置的数量与urls元素个数不同，则默认设置为相同）
+		if (this.totalUrlCount != this.totalWeightCount){
+			
+			Logger.warn("the weight element count is expected to be equal to the urls element count ("
+					+ this.totalUrlCount + "),"
+					+ "crow will set weights to be average by default.");
+			
+			// 为用户自动设上平均的weights
+			for (Entry<DcType, List<String>> entry : this.urlGroupsMap.entrySet()){
+				DcType key = entry.getKey();
+				List<String> value = entry.getValue();
+				List<String> weightValue = this.weightGroupsMap.get(key);
+				weightValue.clear();
+				for (int j=0; j<value.size(); j++){
+					weightValue.add("1");
+				}
+			}
+		}
+		
+		if (this.serviceVersion == null){
+			this.serviceVersion = Constants.DEFAULT_SERVICE_VERSION;
+		}
 	}
 	
+	private int convert(Map<DcType, List<String>> weightGroupsMap2, String weights2) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	private void initMap() {
+		// TODO Auto-generated method stub
+		
+	}
+
 	public boolean isRpc(){
 		return interfaceClass != null && !StringUtils.isEmpty(interfaceClass.trim());
 	}

@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import net.chen.cloudatlas.crow.common.Constants;
 import net.chen.cloudatlas.crow.common.URL;
 import net.chen.cloudatlas.crow.common.exception.ConfigInvalidException;
+import net.chen.cloudatlas.crow.common.utils.StringPropertyReplacer;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public class RegistryConfig extends AbstractConfig{
@@ -64,13 +65,23 @@ public class RegistryConfig extends AbstractConfig{
 	}
 
 	public void check() throws ConfigInvalidException {
-		// TODO Auto-generated method stub
 		
 	}
 
 	public void setDefaultValue() {
-		// TODO Auto-generated method stub
 		
+		if (null == type){
+			type = "zookeeper";
+		}
+		if (this.connectionTimeoutMillis == 0){
+			this.connectionTimeoutMillis = Constants.DEFAULT_REGISTRY_CONNECTION_TIMEOUT_MS;
+		}
+		if (this.sessionTimeoutMillis == 0){
+			this.sessionTimeoutMillis = Constants.DEFAULT_REGISTRY_CONNECTION_TIMEOUT_MS;
+		}
+		if (null != address && !address.trim().isEmpty()){
+			address = StringPropertyReplacer.replaceProperties(address);
+		}
 	}
 
 	public URL toURL(){

@@ -8,11 +8,11 @@ import org.tinylog.Logger;
 
 import net.chen.cloudatlas.crow.common.Constants;
 import net.chen.cloudatlas.crow.common.KeyUtil;
+import net.chen.cloudatlas.crow.common.URL;
 import net.chen.cloudatlas.crow.common.utils.ValidatorUtil;
 
 /**
  * 框架全局信息<br>
- * 未完成
  * @author chenn
  *
  */
@@ -24,8 +24,14 @@ public class CrowClientContext {
 	
 	private static List<ReferenceConfig> referenceConfigList;
 	
+	/**
+	 * <serviceId,ReferenceConfig>
+	 */
 	private static Map<String, ReferenceConfig> referenceConfigMap;
 	
+	/**
+	 * <interfaceClass, ReferenceConfig>
+	 */
 	private static Map<String, ReferenceConfig> referenceConfigRpcMap;
 	
 	private static Map<String, String> referencePasswordMap;
@@ -41,7 +47,6 @@ public class CrowClientContext {
 	private static Map<String, Boolean> isPasswordInitByRefMap;
 	
 	/**
-	 * <p><string>未完成</string></p>
 	 * 判断ipAndPort是否是远端
 	 * @param ipAndPort
 	 * @return
@@ -54,7 +59,24 @@ public class CrowClientContext {
 		
 		boolean isRemote = false;
 		
-		return true;
+		if (null != referenceConfigList){
+			
+			outerTag: for(ReferenceConfig rc : referenceConfigList){
+				List<URL> urls = rc.getURLs();
+				
+				for (URL url : urls){
+					if (url.getHostAndPort().equals(ipAndPort)){
+						isRemote = true;
+						break outerTag;
+					}
+				}
+			}
+		}
+		
+		boolean isMonitor = config.getMonitorConfig() != null && config.getMonitorConfig().getUrls().contains(ipAndPort);
+		
+		// 在reference中或在monitor中配置了，都算是remote
+		return isRemote || isMonitor;
 	}
 
 	public static String getApplicationName() {
@@ -170,5 +192,24 @@ public class CrowClientContext {
 	
 	public static void  setPasswordForRef(String serviceKey, String password){
 		referencePasswordMap.put(serviceKey, password);
+	}
+	
+	public static Map<String, ReferenceConfig> getReferenceConfigMap(){
+		return referenceConfigMap;
+	}
+	
+	public static ServiceConfig getServiceConfigByInterface(String interfaceClass){
+		return getServiceConfigByInterface(interfaceClass, Constants.DEFAULT_SERVICE_VERSION);
+	}
+	
+	public static ServiceConfig getServiceConfigByInterface(String interfaceClass, String serviceVersion){
+		return serviceConfigRpcMap.get(KeyUtil.getServiceKey(interfaceClass, serviceVersion));
+	}
+	
+	public static String getPassByService(String serviceId, String serviceVersion){
+		if (null == referencePasswordMap){
+			return null;
+		}
+		return referencePasswordMap.get(KeyUtil.getServiceKey(serviceId, serviceVersion));
 	}
 }
