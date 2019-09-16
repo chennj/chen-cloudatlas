@@ -117,7 +117,7 @@ public final class Constants {
 	/**
 	 * crow 系统参数 
 	 */
-	public static final String CROW_PROPERTIES_FILES_KEY = "crow.properties.file";
+	public static final String CROW_PROPERTIES_FILE_KEY = "crow.properties.file";
 	public static final String DEFAULT_CROW_PROPERTIES_FILE_KEY = "crow.properties";
 	
 	public static final String CROW_XSD_FILE_KEY = "crow.xsd.file";
@@ -196,4 +196,6 @@ public final class Constants {
 	public static String COMMA_SEPARATOR = ",";
 
 	public static FailType DEFAULT_FAIL_TYPE = FailType.FAIL_OVER;
+
+	public static String GROUP_SEPARATOR = "\\|";
 }

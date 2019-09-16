@@ -6,12 +6,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.chen.cloudatlas.crow.common.KeyUtil;
+import net.chen.cloudatlas.crow.common.URL;
+import net.chen.cloudatlas.crow.common.utils.ValidatorUtil;
 
 /**
  * 存放框架全局信息<br>
- * <b><font color=red>
- * 有待完成
- * </font></b>
  * @author chenn
  *
  */
@@ -168,5 +167,55 @@ public class CrowServerContext {
 		return serviceConfigRpcMap.get(
 				KeyUtil.getServiceKey(interfaceCalss, serviceVersion)
 				);
+	}
+	
+	public static boolean isRemoteEnd(String ipAndPort){
+		
+		if (!ValidatorUtil.validateIpAndPort(ipAndPort)){
+			throw new IllegalArgumentException("param ipAndPort pattern error!");
+		}
+		
+		boolean result = false;
+		
+		if (null != referenceConfigList){
+			
+			outerTag: for (ReferenceConfig c : referenceConfigList){
+				List<URL> urls = c.getURLs();
+				for (URL url : urls){
+					
+					if (url.getHostAndPort().equals(ipAndPort)){
+						result = true;
+						break outerTag;
+					}
+				}
+			}
+		}
+		
+		return result;
+	}
+
+	public static List<ReferenceConfig> getReferenceConfigList() {
+		return referenceConfigList;
+	}
+
+	public static void setReferenceConfigList(List<ReferenceConfig> referenceConfigList) {
+		CrowServerContext.referenceConfigList = referenceConfigList;
+	}
+
+	public static Map<String, ReferenceConfig> getReferenceConfigMap() {
+		return referenceConfigMap;
+	}
+
+	public static List<ServiceConfig> getServiceConfigList() {
+		return serviceConfigList;
+	}
+	
+	public static String getPassByService(String serviceId, String serviceVersion){
+		
+		if (null == servicePasswordMap){
+			return null;
+		}
+		
+		return servicePasswordMap.get(KeyUtil.getServiceKey(serviceId, serviceVersion));
 	}
 }

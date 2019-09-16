@@ -17,11 +17,11 @@ import net.chen.cloudatlas.crow.common.exception.ConfigInvalidException;
 import net.chen.cloudatlas.crow.common.thread.SingletonTimer;
 import net.chen.cloudatlas.crow.common.utils.DuplicatChecker;
 import net.chen.cloudatlas.crow.common.utils.NameableServiceLoader;
-import net.chen.cloudatlas.crow.config.ConfigUtil;
 import net.chen.cloudatlas.crow.config.CrowClientContext;
 import net.chen.cloudatlas.crow.config.CrowConfig;
-import net.chen.cloudatlas.crow.config.CrowConfigParser;
 import net.chen.cloudatlas.crow.config.RegistryConfig;
+import net.chen.cloudatlas.crow.config.utils.ConfigUtil;
+import net.chen.cloudatlas.crow.config.utils.CrowConfigParser;
 import net.chen.cloudatlas.crow.manager.api.RegistryClient;
 import net.chen.cloudatlas.crow.manager.api.RegistryManager;
 import net.chen.cloudatlas.crow.monitor.api.MonitorFactory;
@@ -127,7 +127,7 @@ public class Bootstrap implements Bootable{
 		
 		Set<java.net.URL> urls = ConfigUtil.getAllFilesFromClasspath(
 				System.getProperty(
-						Constants.CROW_PROPERTIES_FILES_KEY,
+						Constants.CROW_PROPERTIES_FILE_KEY,
 						Constants.DEFAULT_CROW_PROPERTIES_FILE_KEY));
 		
 		Properties properties = System.getProperties();

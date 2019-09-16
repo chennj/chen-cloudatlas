@@ -1,6 +1,7 @@
 package net.chen.cloudatlas.crow.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,6 +28,7 @@ import net.chen.cloudatlas.crow.common.exception.ConfigException;
 import net.chen.cloudatlas.crow.common.exception.ConfigInvalidException;
 import net.chen.cloudatlas.crow.common.exception.MethodNotImplException;
 import net.chen.cloudatlas.crow.common.utils.StringPropertyReplacer;
+import net.chen.cloudatlas.crow.common.utils.ValidatorUtil;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ReferenceConfig<T> extends AbstractConfig {
@@ -329,8 +331,64 @@ public class ReferenceConfig<T> extends AbstractConfig {
 	}
 
 	public void check() throws ConfigInvalidException {
-		// TODO Auto-generated method stub
-		throw new MethodNotImplException();
+		
+		if (null != this.urlGroupsMap){
+			
+			for (Entry<DcType,List<String>> entry : this.urlGroupsMap.entrySet()){
+				DcType key = entry.getKey();
+				List<String> value = entry.getValue();
+				for ( String url : value){
+					
+					if (!ValidatorUtil.validateIpAndPort(url)){
+						throw new ConfigInvalidException("ip:prot pattern error");
+					}
+					
+					// check weight
+					for (String weight : this.weightGroupsMap.get(key)){
+						
+						try {
+							Integer.parseInt(weight);
+						} catch (NumberFormatException e){
+							Logger.error("parseInt error.",e);
+							throw new ConfigInvalidException("weight must be number");
+						}
+					}
+				}
+			}
+		}
+		
+		if (null != dcStr){
+			
+			String[] dcs = dcStr.split(Constants.COMMA_SEPARATOR);
+			if (1 == dcs.length){
+				if (!(DcType.SHANGHAI.getText().equals(dcStr.trim()) || DcType.BEIJING.getText().equals(dcStr.trim()))){
+					throw new ConfigInvalidException("dc must be " + DcType.SHANGHAI.getText() + " or " + DcType.BEIJING.getText());
+				}
+			} else if (dcs.length == 2){
+				if (!(DcType.SHANGHAI.getText().equals(dcs[0].trim()) && DcType.BEIJING.getText().equals(dcs[1].trim()))
+						|| (DcType.SHANGHAI.getText().equals(dcs[1].trim()) && DcType.BEIJING.getText().equals(dcs[0].trim()))){
+					throw new ConfigInvalidException("dc must be " + DcType.SHANGHAI.getText() + " or " + DcType.BEIJING.getText());
+				}
+			}
+		}
+		
+		/**
+		 * 需要对非rpc的serviceId进行检查
+		 */
+		if (this.getRegistryConfig() == null || this.isRpc()){
+			return;
+		}
+		if (this.serviceId != null && !this.serviceId.isEmpty()){
+			
+			String[] serviceArr = serviceId.split("_");
+			if (serviceArr == null || serviceArr.length < 2){
+				this.isValidServiceName = false;
+				Logger.error("\n In crow 1, serviceId need to be unique from other app,\n"
+						+ " which should be named like sys_app_yourservice. \n"
+						+ " you should have at lease one '_' in your serviceId or your \n"
+						+ " service will not be subscribed from zookeeper. \n");
+			}
+		}
 	}
 
 	@JSONField(serialize=false,deserialize=false)
@@ -413,14 +471,44 @@ public class ReferenceConfig<T> extends AbstractConfig {
 		}
 	}
 	
-	private int convert(Map<DcType, List<String>> weightGroupsMap2, String weights2) {
-		// TODO Auto-generated method stub
-		return 0;
+	private int convert(Map<DcType, List<String>> result, String str) {
+		
+		int count = 0;
+		String[] groups = str.split(Constants.GROUP_SEPARATOR);
+		String[] dcs = dcStr.split(Constants.COMMA_SEPARATOR);
+		
+		for (int i=0; i<groups.length; i++){
+			
+			if (null != groups[i]){
+				String[] addrArr = groups[i].split(Constants.COMMA_SEPARATOR);
+				if (addrArr.length == 0 || addrArr[0].equals("")){
+					continue;
+				}
+				count += addrArr.length;
+				result.get(DcType.fromString(dcs[i].trim())).addAll(Arrays.asList(addrArr));
+			}
+		}
+		return count;
 	}
 
 	private void initMap() {
-		// TODO Auto-generated method stub
 		
+		String[] dcs = dcStr.split(Constants.COMMA_SEPARATOR);
+		
+		this.urlGroupsMap = new LinkedHashMap<>();
+		this.weightGroupsMap = new LinkedHashMap<>();
+		
+		for (int i=0; i<dcs.length; i++){
+			this.urlGroupsMap.put(DcType.fromString(dcs[i].trim()), new ArrayList<>());
+			this.weightGroupsMap.put(DcType.fromString(dcs[i].trim()), new ArrayList<>());
+			if (this.dcAutoSwitch || i==0){
+				// 自动切换时，每个dc都设置为true，
+				// 否则只有第一个dc设置为true
+				this.dcStrategy.put(DcType.fromString(dcs[i].trim()), true);
+			} else if (i>0){
+				this.dcStrategy.put(DcType.fromString(dcs[i].trim()), false);
+			}
+		}
 	}
 
 	public boolean isRpc(){
