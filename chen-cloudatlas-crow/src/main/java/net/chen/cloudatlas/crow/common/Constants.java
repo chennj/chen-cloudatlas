@@ -191,6 +191,9 @@ public final class Constants {
 	// RPC GETsERVICE时阻塞，直到zk connected或连接不上
 	public static final long REGISTRY_CONNECTION_LATCH_TIMEOUT = REGISTRY_CONNECTION_BLOCK_TIME + 2*1000;
 
+	public static final String SPRINGAUTOSTART_KEY = "springAutoStart";
+	public static final boolean SPRINGAUTOSTART = Boolean.parseBoolean(System.getProperty(SPRINGAUTOSTART_KEY,"true"));
+
 	public static long DEFAULT_MONITOR_INTERVAL = 1 * 60 * 1000; //1分钟
 
 	public static String COMMA_SEPARATOR = ",";
