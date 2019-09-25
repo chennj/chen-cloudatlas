@@ -2,6 +2,12 @@ package net.chen.cloudatlas.crow.manager.api.model.command;
 
 import java.io.Serializable;
 
+/**
+ * CommandType.TOKEN的节点的数据模型
+ * 
+ * @author chenn
+ *
+ */
 public class TokenData implements Serializable{
 
 	/**

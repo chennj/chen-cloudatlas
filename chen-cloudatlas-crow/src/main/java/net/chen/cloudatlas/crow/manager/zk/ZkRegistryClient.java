@@ -14,8 +14,12 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.transaction.CuratorTransaction;
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
+import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.retry.RetryNTimes;
@@ -25,12 +29,14 @@ import org.tinylog.Logger;
 import net.chen.cloudatlas.crow.common.Constants;
 import net.chen.cloudatlas.crow.common.DcType;
 import net.chen.cloudatlas.crow.common.URL;
+import net.chen.cloudatlas.crow.config.ReferenceConfig;
 import net.chen.cloudatlas.crow.config.ServiceBaseConfig;
 import net.chen.cloudatlas.crow.config.ServiceConfig;
 import net.chen.cloudatlas.crow.config.utils.ServiceConfigQueue;
 import net.chen.cloudatlas.crow.manager.api.RegistryClient;
 import net.chen.cloudatlas.crow.manager.api.RegistryConnectionState;
 import net.chen.cloudatlas.crow.manager.api.RegistryConnectionStateListener;
+import net.chen.cloudatlas.crow.manager.api.RegistryEvent;
 import net.chen.cloudatlas.crow.manager.api.RegistryEventWatcher;
 import net.chen.cloudatlas.crow.manager.api.support.CommandType;
 import net.chen.cloudatlas.crow.manager.api.support.RegistryCommandExecutor;
@@ -291,9 +297,9 @@ public class ZkRegistryClient implements RegistryClient{
 								}
 								
 							});
-					result.put(dc, eachList);
 				}
 			}
+			result.put(dc, eachList);
 		}
 		
 		return result;
@@ -301,26 +307,185 @@ public class ZkRegistryClient implements RegistryClient{
 
 	@Override
 	public <T> void watchProvider(String serviceId, DcType dc, RegistryEventWatcher<T> watcher) throws Exception {
-		// TODO Auto-generated method stub
 		
+		checkStarted();
+		
+		Logger.debug("set EventWatcher on service provider "+serviceId+" on dc:"+dc.getText());
+		
+		final String path = ZkRegistryUtil.getProviderParentPath(dc, serviceId);
+		if (null == client.checkExists().forPath(path)){
+			// 父节点不存在，创建一个空的父节点
+			client.create()
+				.creatingParentsIfNeeded()
+				.forPath(path,ZkConst.ZK_EMPTY_NODE_DATA);
+			Logger.debug("provider parent zk node "+path+" not found, creating ..");
+		} else {
+			// 节点存在
+			Logger.debug("provider parent zk node "+path+"found.");
+		}
+		
+		PathChildrenCache cache = providerCacheMap.get(path);
+		if (null == cache){
+			
+			cache = new PathChildrenCache(client, path, true);
+			// 初始化后，会收到事件PathChildrenEvent.Type#INITIALIZED
+			cache.start(StartMode.POST_INITIALIZED_EVENT);
+			cache.getListenable().addListener(new PathChildrenCacheListener(){
+
+				@Override
+				public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+					
+					try {
+						Logger.debug("provider child event type:"+event.getType());
+						ChildData nodeData = event.getData();
+						if (null != nodeData){
+							Logger.debug("provider child event child path:"+nodeData.getPath());
+						}
+						List<ChildData> initData = event.getInitialData();
+						if (null != initData){
+							
+							for (ChildData d : initData){
+								Logger.debug("provider child event child init path:"+d.getPath());
+							}
+							
+						}
+						
+						RegistryEvent<T> evt = new RegistryEvent<T>(ZkRegistryUtil.eventTypeConvert(event.getType()));		
+						if (null != nodeData){
+							evt.setPath(nodeData.getPath());
+							evt.setNodeData(ZkRegistryUtil.deserializeNodeData(nodeData.getData(), watcher.payloadClass()));
+						}
+						evt.setDc(dc);
+						
+						if (PathChildrenCacheEvent.Type.INITIALIZED == event.getType() && null != initData){
+							List<T> initChildren = new ArrayList<>();
+							for (ChildData one : initData){
+								initChildren.add(
+										ZkRegistryUtil.deserializeNodeData(one.getData(), watcher.payloadClass()));
+							}
+							evt.setInitData(initChildren);
+						}
+						watcher.onEvent(evt);
+					} catch (Exception e){
+						Logger.error("provider childEvent error ",e);
+						throw e;
+					}
+				}// end of PathChildrenCacheListener
+				
+			});
+			providerCacheMap.put(path, cache);
+			// end of addListener
+		} else {
+			Logger.warn("already watched on "+path+",ignoring it ..");
+		}
 	}
 
 	@Override
 	public void registerConsumer(String serviceId, DcType[] dcs, ServiceConsumer consumer) throws Exception {
-		// TODO Auto-generated method stub
 		
+		checkStarted();
+		
+		CuratorTransaction transaction = client.inTransaction();
+		
+		for (DcType dc : dcs){
+			
+			Logger.debug("registing service consumer "+serviceId+" on dc:"+dc.getText());
+			
+			final String path = ZkRegistryUtil.getConsumerPath(
+					dc, 
+					serviceId, 
+					ZkRegistryUtil.getConsumerNodeKey(consumer.getConfig().getProtocol()));
+			
+			Logger.debug("deleting expire consumer zk node "+path);
+			
+			if (client.checkExists().forPath(path) != null){
+				transaction = (CuratorTransaction)transaction.delete().forPath(path);
+			}
+			
+			if (transaction instanceof CuratorTransactionFinal){
+				((CuratorTransactionFinal)transaction).commit();
+			}
+			
+			Logger.debug("creating new consumer zk node "+path);
+			
+			transaction = client.inTransaction();
+			// 节点不存在，先生成父路径的create事务，再生成子节点create事务
+			final String parentPath = ZkRegistryUtil.getConsumerParentPath(dc, serviceId);
+			transaction = createParentPathTransactions(parentPath,transaction,client)
+					.create().withMode(CreateMode.EPHEMERAL)
+					.forPath(path, ZkRegistryUtil.serializeNodeData(consumer.getConfig()))
+					.and();
+			
+		}
+		
+		// 提交事务
+		if (transaction instanceof CuratorTransactionFinal){
+			((CuratorTransactionFinal)transaction).commit();
+		}
 	}
 
 	@Override
 	public Map<DcType, List<ServiceConsumer>> fetchConsumers(String serviceId, DcType[] dcs) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		
+		checkStarted();
+		
+		Map<DcType, List<ServiceConsumer>> result = new EnumMap<DcType,List<ServiceConsumer>>(DcType.class);
+		for (DcType dc : dcs){
+			List<ServiceConsumer> eachList = new ArrayList<>();
+			Logger.debug("fetch service consumer "+serviceId+" on dc:"+dc.getText());
+			final String path = ZkRegistryUtil.getConsumerParentPath(dc, serviceId);
+			if (client.checkExists().forPath(path) == null){
+				//节点存在
+				Logger.warn("consumer zk node "+path+" not found");
+				continue;
+			} else {
+				//节点不存在
+				for (String eachPath : client.getChildren().forPath(path)){
+					final String eachFullPath = path + "/" + eachPath;
+					Logger.debug("found provider zk node " + eachPath + ",full path="+eachFullPath);
+					final ReferenceConfig<?> config = ZkRegistryUtil.deserializeNodeData(
+							client.getData().forPath(eachFullPath), 
+							ReferenceConfig.class);
+					eachList.add(new ServiceConsumer(){
+
+						@Override
+						public ReferenceConfig<?> getConfig() {
+							return config;
+						}
+						
+					});
+				}
+			}
+			result.put(dc, eachList);
+		}
+		return result;
 	}
 
 	@Override
 	public <T> void watchConsumer(String serviceId, DcType dc, RegistryEventWatcher<T> watcher) throws Exception {
-		// TODO Auto-generated method stub
 		
+		checkStarted();
+		
+		Logger.debug("set EventWatcher on service consumer "+serviceId+" on dc:"+dc.getText());
+		
+		final String path = ZkRegistryUtil.getConsumerParentPath(dc, serviceId);
+		if (client.checkExists().forPath(path) == null){
+			//父节点不存在，创建一个空的父节点
+			client.create().creatingParentsIfNeeded().forPath(path,ZkConst.ZK_EMPTY_NODE_DATA);
+			Logger.debug("consumer parent zk node "+path+" not found, creating ..");
+		} else {
+			//节点存在
+			Logger.debug("consumer parent zk node "+path+" found");
+		}
+		
+		PathChildrenCache cache = consumerCacheMap.get(path);
+		if (null == cache){
+			
+			cache = new PathChildrenCache(client, path, true);
+			// 初始化后，会收到事件PathChildrenCacheEvent.Type#INITIALIZED
+			cache.start(StartMode.POST_INITIALIZED_EVENT);
+			
+		}
 	}
 
 	@Override
@@ -381,6 +546,10 @@ public class ZkRegistryClient implements RegistryClient{
 		return result;
 	}
 	
+	/**
+	 * 初始化ZK客户端
+	 * @param lisenter
+	 */
 	private void init(final RegistryConnectionStateListener lisenter){
 		
 		client = CuratorFrameworkFactory.newClient(

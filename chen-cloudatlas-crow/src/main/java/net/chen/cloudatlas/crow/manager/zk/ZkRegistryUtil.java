@@ -294,4 +294,14 @@ public class ZkRegistryUtil {
 		String pid = name.split("@")[0];
 		return pid;
 	}
+
+	public static String getConsumerNodeKey(ProtocolConfig protocol) {
+		
+		String host = protocol.getIp();
+		
+		if (StringUtils.isBlank(host)){
+			host = NetUtil.getLocalAddress().getHostAddress();
+		}
+		return host+"-"+getPid();
+	}
 }

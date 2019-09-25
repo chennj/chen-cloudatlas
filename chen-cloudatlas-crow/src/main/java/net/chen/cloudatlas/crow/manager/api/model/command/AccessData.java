@@ -3,6 +3,11 @@ package net.chen.cloudatlas.crow.manager.api.model.command;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * CommandType.ACCESS的节点的数据模型
+ * @author chenn
+ *
+ */
 public class AccessData implements Serializable{
 
 	/**

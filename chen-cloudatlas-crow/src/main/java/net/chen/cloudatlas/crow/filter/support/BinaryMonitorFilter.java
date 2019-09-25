@@ -19,12 +19,15 @@ import net.chen.cloudatlas.crow.config.ProtocolConfig;
 import net.chen.cloudatlas.crow.config.ServiceConfig;
 import net.chen.cloudatlas.crow.filter.BinaryFilter;
 import net.chen.cloudatlas.crow.filter.BinaryFilterChain;
+import net.chen.cloudatlas.crow.monitor.api.Monitor;
 import net.chen.cloudatlas.crow.monitor.api.MonitorFactory;
 import net.chen.cloudatlas.crow.remote.RemoteException;
 import net.chen.cloudatlas.crow.remote.Request;
 import net.chen.cloudatlas.crow.remote.Response;
 import net.chen.cloudatlas.crow.remote.support.crow.CrowRequest;
+import net.chen.cloudatlas.crow.rpc.RpcException;
 import net.chen.cloudatlas.crow.rpc.SubInvoker;
+import net.chen.cloudatlas.crow.rpc.utils.RpcUtil;
 
 /**
  * 应用在consumer端。拦截call，在call后收集该次调用的统计信息
@@ -98,9 +101,20 @@ public class BinaryMonitorFilter implements BinaryFilter{
 			Response result;
 			long start = System.currentTimeMillis();
 			int concurrent = getConcurrent(url).incrementAndGet();//并发+1
+			try {
+				result = chain.doFilter(subInvoker, request, chain);
+				collect(url, true, start, concurrent);
+			} catch (RpcException e){
+				collect(url, false, start, concurrent);
+				throw e;
+			} finally{
+				getConcurrent(url).decrementAndGet();//并发-1
+			}
+			return result;
+		} else {
+			return chain.doFilter(subInvoker, request, chain);
 		}
-		
-		throw new RemoteException("还未完成呢");
+	
 	}
 
 	private AtomicInteger getConcurrent(URL url){
@@ -111,5 +125,46 @@ public class BinaryMonitorFilter implements BinaryFilter{
 			concurrentMap.put(key, result);
 		}
 		return result;
+	}
+	
+	private void collect(URL url,  boolean success, long start, int concurrent){
+		
+		long end = System.currentTimeMillis();
+		Monitor monitor = this.factory.getMonitor(url);
+		if (null == monitor){
+			return ;
+		}
+		
+		String side;
+		int localPort;
+		
+		if (RpcUtil.isConsumer(url)){
+			localPort = 0;
+			side = Constants.CONSUMER;
+		} else {
+			localPort = url.getPort();
+			side = Constants.PROVIDER;
+		}
+		
+		URL statistics = new URL(
+				url.getProtocol(),
+				url.getHost(),
+				url.getPort(),
+				url.getPath(),
+				Constants.SIDE,side,
+				Constants.GROUP,url.getParameter(Constants.GROUP),
+				Constants.APPLICATION,url.getParameter(Constants.APPLICATION),
+				Constants.DC,url.getParameter(Constants.DC),
+				Constants.SERVICE_ID,url.getParameter(Constants.SERVICE_ID),
+				Constants.SERVICE_VERSION,url.getParameter(Constants.SERVICE_VERSION),
+				Constants.METHOD,"",
+				Constants.SUCC_COUNT,success?"1":"0",
+				Constants.FAIL_COUNT,success?"0":"1",
+				Constants.TOTAL_RT,String.valueOf(end-start),
+				Constants.CONCURRENT,String.valueOf(concurrent),
+				Constants.MONITOR_INTERVAL,url.getParameter(Constants.MONITOR_INTERVAL));
+		
+		monitor.collect(statistics);
+
 	}
 }

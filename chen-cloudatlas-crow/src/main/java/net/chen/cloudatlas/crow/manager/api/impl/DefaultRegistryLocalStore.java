@@ -12,6 +12,11 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import net.chen.cloudatlas.crow.manager.api.RegistryData;
 import net.chen.cloudatlas.crow.manager.api.RegistryLocalStore;
 
+/**
+ * RegistryLocalStore默认实现
+ * @author chenn
+ *
+ */
 public class DefaultRegistryLocalStore implements RegistryLocalStore{
 
 	public static final String STORE_ROOT_DIR = System.getProperty("user.home") + File.separator + ".crow";
