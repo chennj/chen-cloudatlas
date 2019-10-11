@@ -75,11 +75,16 @@ public enum CrowStatus {
 		return value;
 	}
 	
-	private static final Map<Integer, CrowStatus> STRING_T0_ENUM = new HashMap<>();
+	private static final Map<Integer, CrowStatus> STRING_TO_ENUM = new HashMap<>();
+	
 	static{
 		for(CrowStatus one : values()){
-			STRING_T0_ENUM.put(Integer.valueOf(one.value),one);
+			STRING_TO_ENUM.put(Integer.valueOf(one.value),one);
 		}
+	}
+	
+	public static CrowStatus valueOf(byte statusByte){
+		return STRING_TO_ENUM.get(Integer.valueOf(statusByte));
 	}
 
 	@Override

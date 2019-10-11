@@ -16,6 +16,7 @@ import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.NodeCache;
+import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
@@ -29,6 +30,7 @@ import org.tinylog.Logger;
 import net.chen.cloudatlas.crow.common.Constants;
 import net.chen.cloudatlas.crow.common.DcType;
 import net.chen.cloudatlas.crow.common.URL;
+import net.chen.cloudatlas.crow.config.CrowServerContext;
 import net.chen.cloudatlas.crow.config.ReferenceConfig;
 import net.chen.cloudatlas.crow.config.ServiceBaseConfig;
 import net.chen.cloudatlas.crow.config.ServiceConfig;
@@ -37,7 +39,9 @@ import net.chen.cloudatlas.crow.manager.api.RegistryClient;
 import net.chen.cloudatlas.crow.manager.api.RegistryConnectionState;
 import net.chen.cloudatlas.crow.manager.api.RegistryConnectionStateListener;
 import net.chen.cloudatlas.crow.manager.api.RegistryEvent;
+import net.chen.cloudatlas.crow.manager.api.RegistryEventType;
 import net.chen.cloudatlas.crow.manager.api.RegistryEventWatcher;
+import net.chen.cloudatlas.crow.manager.api.support.CommandContext;
 import net.chen.cloudatlas.crow.manager.api.support.CommandType;
 import net.chen.cloudatlas.crow.manager.api.support.RegistryCommandExecutor;
 import net.chen.cloudatlas.crow.manager.api.support.ServiceConsumer;
@@ -485,44 +489,358 @@ public class ZkRegistryClient implements RegistryClient{
 			// 初始化后，会收到事件PathChildrenCacheEvent.Type#INITIALIZED
 			cache.start(StartMode.POST_INITIALIZED_EVENT);
 			
+			cache.getListenable().addListener(new PathChildrenCacheListener(){
+
+				@Override
+				public void childEvent(CuratorFramework client, PathChildrenCacheEvent cacheEvent) throws Exception {
+					try {
+						Logger.debug("consumer child event type: " + cacheEvent.getType());
+						
+						ChildData nodeData = cacheEvent.getData();
+						if (null != nodeData){
+							Logger.debug("concumer child event child path: "+nodeData.getPath());
+						}
+						
+						List<ChildData> initData = cacheEvent.getInitialData();
+						if (null != initData){
+							for (ChildData one : initData){
+								Logger.debug("consumer child event child init path:"+one.getPath());
+							}
+						}
+						
+						RegistryEvent<T> event = new RegistryEvent<T>(ZkRegistryUtil.eventTypeConvert(cacheEvent.getType()));
+						
+						if (null != nodeData){
+							event.setPath(nodeData.getPath());
+							event.setNodeData(ZkRegistryUtil.deserializeNodeData(nodeData.getData(), watcher.payloadClass()));
+						}
+						
+						event.setDc(dc);
+						
+						if (null != initData && PathChildrenCacheEvent.Type.INITIALIZED == cacheEvent.getType()){
+							List<T> initChildren = new ArrayList<>();
+							for (ChildData one : initData){
+								initChildren.add(
+										ZkRegistryUtil.deserializeNodeData(one.getData(), watcher.payloadClass()));
+							}
+							event.setInitData(initChildren);
+						}
+						
+						watcher.onEvent(event);
+					} catch (Exception e){
+						Logger.error("consumer childEvent error ",e);
+						throw e;
+					}
+				}
+				
+			});
+			
+			consumerCacheMap.put(path, cache);
+		} else {
+			Logger.warn("already watched on "+path+",ignoring it ..");
 		}
 	}
 
 	@Override
-	public <T> void watchService(String serviceId, DcType dc, ServiceProvider provider) throws Exception {
-		// TODO Auto-generated method stub
+	public <T> void watchService(String serviceId, final DcType dc, final ServiceProvider provider) throws Exception {
 		
+		checkStarted();
+		
+		Logger.debug("set EventWatcher on service "+serviceId+" on dc:"+dc.getText());
+		
+		final String path = ZkRegistryUtil.getServicePath(dc, serviceId);
+		
+		if (client.checkExists().forPath(path) == null){
+			//父节点不存在，创建一个空的父节点
+			client.create().creatingParentsIfNeeded().forPath(path, ZkConst.ZK_EMPTY_NODE_DATA);
+			Logger.debug("service zk node "+path+" not found, creating ..");
+		} else {
+			//节点存在
+			Logger.debug("service zk node "+path+" found");
+		}
+		
+		NodeCache cache = serviceCacheMap.get(path);
+		if (null == cache){
+			
+			final NodeCache newCache = new NodeCache(client, path);
+			newCache.start();
+			newCache.getListenable().addListener(new NodeCacheListener(){
+
+				@Override
+				public void nodeChanged() throws Exception {
+					try {
+						ChildData nodeData = newCache.getCurrentData();
+						
+						Logger.debug("service node changed: "+nodeData);
+						
+						if (null != nodeData){
+							Logger.debug("service node path:"+nodeData.getPath());
+							if (null != nodeData && null != nodeData.getData()){
+								byte[] dataBytes = nodeData.getData();
+								ServiceBaseConfig config = ZkRegistryUtil
+										.deserializeNodeData(dataBytes, ServiceBaseConfig.class);
+								if (null == config){
+									return ;
+								}
+								provider.getConfig().setIpBlackList(config.getIpBlackList());
+								provider.getConfig().setIpWhiteList(config.getIpWhiteList());
+								provider.getConfig().setDcStrategy(config.getDcOn());
+								
+								Logger.debug("service node data:"+new String(dataBytes));
+							}
+						}
+					} catch (Exception e){
+						Logger.error("service nodeChanged error ",e);
+						throw e;
+					}
+				}
+				
+			});
+			
+			serviceCacheMap.put(path, newCache);
+			cache = newCache;
+			
+			Logger.debug("EventWatcher on service "+serviceId+" on dc:"+dc.getText()+" has been set");
+		}
 	}
 
 	@Override
-	public <T> void watchService(String serviceId, DcType dc, ServiceConsumer consumer) throws Exception {
-		// TODO Auto-generated method stub
+	public <T> void watchService(String serviceId, final DcType dc, final ServiceConsumer consumer) throws Exception {
 		
+		checkStarted();
+		
+		Logger.debug("set EventWatcher on service "+serviceId+" on dc:"+dc.getText());
+		
+		final String path = ZkRegistryUtil.getServicePath(dc, serviceId);
+		
+		if (client.checkExists().forPath(path) == null){
+			//父节点不存在，创建一个空的父节点
+			client.create().creatingParentsIfNeeded().forPath(path, ZkConst.ZK_EMPTY_NODE_DATA);
+			Logger.debug("service zk node "+path+" not found, creating ..");
+		} else {
+			//节点存在
+			Logger.debug("service zk node "+path+" found");
+		}
+		
+		NodeCache cache = serviceCacheMap.get(path);
+		if (null == cache){
+			
+			final NodeCache newCache = new NodeCache(client, path);
+			newCache.start();
+			newCache.getListenable().addListener(new NodeCacheListener(){
+
+				@Override
+				public void nodeChanged() throws Exception {
+					try {
+						ChildData nodeData = newCache.getCurrentData();
+						
+						Logger.debug("service node changed: "+nodeData);
+						
+						if (null != nodeData){
+							Logger.debug("service node path:"+nodeData.getPath());
+							if (null != nodeData && null != nodeData.getData()){
+								byte[] dataBytes = nodeData.getData();
+								ServiceBaseConfig config = null;
+								try {
+									config = ZkRegistryUtil
+											.deserializeNodeData(dataBytes, ServiceBaseConfig.class);
+								} catch (Exception ec){
+									Logger.error(ec);
+									config = new ServiceBaseConfig();
+								}
+								if (null == config){
+									config = new ServiceBaseConfig();
+								}
+								
+								consumer.getConfig().setDcStrategy(dc, config.getDcOn());
+								
+								Logger.debug("service node data:"+new String(dataBytes));
+							}
+						}
+					} catch (Exception e){
+						Logger.error("service nodeChanged error ",e);
+						throw e;
+					}
+				}
+				
+			});
+			
+			serviceCacheMap.put(path, newCache);
+			cache = newCache;
+			
+			Logger.debug("EventWatcher on service "+serviceId+" on dc:"+dc.getText()+" has been set");
+			
+		}
 	}
 
 	@Override
-	public <T> void watchHostPort(String serviceId, DcType dc, ServiceProvider provider) throws Exception {
-		// TODO Auto-generated method stub
+	public <T> void watchHostPort(String serviceId, DcType dc, final ServiceProvider provider) throws Exception {
+		
+		checkStarted();
+		
+		final ServiceConfig<?> sConfig = provider.getConfig();
+		String providerNodeKey = ZkRegistryUtil.getProviderNodeKey(sConfig.getProtocol());
+		final String path = ZkRegistryUtil.getProviderPath(dc, serviceId, providerNodeKey);
+		
+		Logger.debug("set EventWatcher on host-port "+providerNodeKey+" on dc:"+dc.getText());
+		
+		if (client.checkExists().forPath(path) == null){
+			//host-port节点不存在，尝试创建新节点
+			client.create().withMode(CreateMode.EPHEMERAL).forPath(
+					path,
+					ZkRegistryUtil.serializeNodeData(sConfig));
+			Logger.debug("host-port node "+path+" not found, creating ..");
+		} else {
+			// 节点存在
+			Logger.debug("host-port node "+path+" found.");
+		}
+		
+		NodeCache cache = hostportCacheMap.get(path);
+		if (null == cache){
+			
+			final NodeCache newCache = new NodeCache(client, path);
+			newCache.start();
+			newCache.getListenable().addListener(new NodeCacheListener(){
+
+				@Override
+				public void nodeChanged() throws Exception {
+					try {
+						ChildData nodeData = newCache.getCurrentData();
+						
+						Logger.debug("host-port node changed: "+nodeData);
+						
+						if (null != nodeData){
+							Logger.debug("host-port node path:"+nodeData.getPath());
+							byte[] dataBytes = nodeData.getData();
+							ServiceConfig<?> tmpConfig = ZkRegistryUtil.deserializeNodeData(dataBytes, ServiceConfig.class);
+							sConfig.setStatus(tmpConfig.getStatus());
+							sConfig.setWeight(tmpConfig.getWeight());
+							sConfig.setThrottleType(tmpConfig.getThrottleType());
+							sConfig.setThrottleValue(tmpConfig.getThrottleValue());
+							
+							if (tmpConfig.getThrottleValue() > 0){
+								CrowServerContext.setThrottleOpen(true);
+							}
+							
+							crowConfigQueue.remove(sConfig);
+							crowConfigQueue.add(sConfig);
+							
+							Logger.debug("host-port node data:"+new String(dataBytes,"UTF-8"));
+						}
+					} catch (Exception e){
+						Logger.error("host-port nodeChanged error ",e);
+						throw e;
+					}
+				}
+				
+			});
+			
+			hostportCacheMap.put(path, newCache);
+			cache = newCache;
+			
+			Logger.debug("EventWatcher on service "+providerNodeKey+" on dc:"+dc.getText()+" has been set");
+			
+		}		
 		
 	}
 
 	@Override
 	public boolean checkServiceProvider(String serviceId, DcType dc, ServiceProvider provider) throws Exception {
-		// TODO Auto-generated method stub
-		return false;
+		
+		ServiceConfig serviceConfig = provider.getConfig();
+		String providerNodeKey = ZkRegistryUtil.getProviderNodeKey(serviceConfig.getProtocol());
+		final String path = ZkRegistryUtil.getProviderPath(dc, serviceId, providerNodeKey);
+		return (client.checkExists().forPath(path) != null);
 	}
 
 	@Override
 	public <T> void watchCommand(String serviceId, DcType[] dcs, CommandType commandType,
 			RegistryCommandExecutor<T> executor) throws Exception {
-		// TODO Auto-generated method stub
+		
+		try {
+			checkStarted();
+			
+			for (DcType dc :dcs){
+				
+				Logger.debug("set EventWatcher on service command "+commandType.name()+" of service "
+						+ serviceId + " on dc:" + dc.getText());
+				
+				final String path = ZkRegistryUtil.getCommandPath(dc, serviceId, commandType);
+				
+				if (client.checkExists().forPath(path) == null){
+					//父节点不存在，尝试创建空的父节点
+					client.create().creatingParentsIfNeeded().forPath(path,ZkConst.ZK_EMPTY_NODE_DATA);
+					Logger.debug("command parent zk node "+path+" not found, creating ..");
+				} else {
+					//父节点存在
+					Logger.debug("command parent zk node "+path+" found");
+				}
+				
+				NodeCache cache = commandCacheMap.get(path);
+				if (null == cache){
+					final NodeCache newCache = new NodeCache(client,path);
+					newCache.start();
+					newCache.getListenable().addListener(new NodeCacheListener(){
+
+						@Override
+						public void nodeChanged() throws Exception {
+							try {
+								ChildData nodeData = newCache.getCurrentData();
+								
+								Logger.debug("command node changed: "+nodeData);
+								
+								if (null != nodeData){
+									Logger.debug("command node path:"+nodeData.getPath());
+									byte[] dataBytes = nodeData.getData();
+									Logger.debug("host-port node data:"+new String(dataBytes,"UTF-8"));
+								}
+								
+								CommandContext<T> context = new CommandContext<T>(RegistryEventType.NODE_DATA_UPDATE);
+								
+								if (null != nodeData){
+									context.setPath(nodeData.getPath());
+									context.setData(
+											ZkRegistryUtil.deserializeNodeData(nodeData.getData(),executor.contextDataClass()));
+								}
+								
+								executor.execute(context);
+							} catch (Exception e){
+								Logger.error("command nodeChanged error ",e);
+								throw e;
+							}
+						}
+						
+					});
+					
+					commandCacheMap.put(path, newCache);
+					cache = newCache;
+					
+					Logger.debug("EventWatcher on service command "+commandType.name()+" of service "
+							+ serviceId + " on dc:"+dc.getText()+" has been set");
+				} else {
+					Logger.warn("already watched on "+path+",ignoring it ..");
+				}
+				
+			}
+		} catch (Exception e){
+			Logger.error("watch command error ",e);
+			throw e;
+		}
 		
 	}
 
 	@Override
 	public int checkDcStrategy(DcType dc, String serviceKey) {
-		// TODO Auto-generated method stub
-		return 0;
+		
+		try {
+			final String servicePath = ZkRegistryUtil.getServicePath(dc, serviceKey);
+			byte[] data = client.getData().forPath(servicePath);
+			ServiceBaseConfig sc = ZkRegistryUtil.deserializeNodeData(data, ServiceBaseConfig.class);
+			return sc.getDcOn();
+		} catch (Exception e){
+			Logger.error("error on ServiceBaseConfig found for "+serviceKey);
+			return 0;
+		}
 	}
 	
 	private void checkStarted() throws Exception {

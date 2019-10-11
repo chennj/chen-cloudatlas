@@ -15,7 +15,7 @@ import net.chen.cloudatlas.crow.common.URL;
 import net.chen.cloudatlas.crow.common.utils.UrlUtil;
 
 /**
- * <font color=red>未完成</font>
+ * 
  * @author chenn
  *
  */
@@ -37,6 +37,11 @@ public class ChannelRegistry {
 		registerChannel(channel,false);
 	}
 
+	/**
+	 * register channel and save it in channelsMap, thread-safe
+	 * @param channel
+	 * @param checkAvailability
+	 */
 	public static void registerChannel(Channel channel, final boolean checkAvailability) {
 		
 		if (null == channel){
@@ -71,14 +76,31 @@ public class ChannelRegistry {
 	}
 
 	/**
-	 * <p><font color=red>未完成</font></p>
+	 * 
 	 * @param c
 	 */
 	public static void stopRetryChannel(Channel c) {
-		// TODO Auto-generated method stub
-		
+		stopRetryChannel(c,false);
 	}
 
+	public static void stopRetryChannel(Channel c, final boolean checkAvailability) {
+		
+		if (null == c){
+			throw new IllegalArgumentException("channel object is null");
+		}
+		
+		if (null == c.remoteAddress()){
+			throw new IllegalArgumentException("channel remote address is null");
+		}
+		
+		String key = UrlUtil.getAddressKey((InetSocketAddress)c.remoteAddress());
+		stopRetryChannel(key,checkAvailability);
+	}
+
+	/**
+	 * remove channel from availableChannels and put it on unavailableChannels fro retry
+	 * @param nettyChannel
+	 */
 	public static void invalidateChannel(Channel nettyChannel) {
 		
 		if (null != nettyChannel){
@@ -93,6 +115,12 @@ public class ChannelRegistry {
 		}
 	}
 	
+	/**
+	 * remove channel from availableChannels and put it on unavailableChannels for retry <br>
+	 * use SocketAddress as input parameter install Channel object
+	 * 
+	 * @param address
+	 */
 	public static void invalidateChannel(SocketAddress address){
 		
 		if (null != address){
@@ -146,7 +174,7 @@ public class ChannelRegistry {
 		}
 	}
 
-	public static void unregisterChannel(io.netty.channel.Channel channel) {
+	public static void unregisterChannel(Channel channel) {
 		
 		if (null != channel){
 			unregisterChannel((InetSocketAddress)channel.remoteAddress());
@@ -157,7 +185,7 @@ public class ChannelRegistry {
 		return availableChannels.containsKey(addressKey);
 	}
 
-	public static void stopRetryChannel(String addressKey, boolean checkAvailability) {
+	public static void stopRetryChannel(String addressKey, final boolean checkAvailability) {
 		
 		if (checkAvailability){
 			lock.lock();
@@ -172,5 +200,35 @@ public class ChannelRegistry {
 		} else {
 			unavailableChannels.remove(addressKey);
 		}
+	}
+	
+	public static void removeChannel(SocketAddress address){
+		
+		if (null != address){
+			String key = UrlUtil.getAddressKey((InetSocketAddress)address);
+			lock.lock();
+			try {
+				availableChannels.remove(key);
+				unavailableChannels.remove(key);
+			} finally {
+				lock.unlock();
+			}
+		}
+	}
+	
+	public static List<Channel> getAvailableChannels(){
+		return new ArrayList<Channel>(availableChannels.values());
+	}
+	
+	public static List<String> getAvailableKeys(){
+		return new ArrayList<String>(availableChannels.keySet());
+	}
+	
+	public static void clearUnavailableChannels(){
+		unavailableChannels.clear();
+	}
+	
+	public static void clearAvailableChannels(){
+		availableChannels.clear();
 	}
 }

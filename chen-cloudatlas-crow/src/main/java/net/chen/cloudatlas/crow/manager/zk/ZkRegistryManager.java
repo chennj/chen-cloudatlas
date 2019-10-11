@@ -8,6 +8,11 @@ import net.chen.cloudatlas.crow.common.URL;
 import net.chen.cloudatlas.crow.manager.api.AbstractRegistryManager;
 import net.chen.cloudatlas.crow.manager.api.RegistryClient;
 
+/**
+ * 配置中心的zookeeper实现
+ * @author chenn
+ *
+ */
 public class ZkRegistryManager extends AbstractRegistryManager{
 
 	public static final String EXT_NAME = "zookeeper";

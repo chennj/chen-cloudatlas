@@ -12,6 +12,7 @@ import org.tinylog.Logger;
 import com.alibaba.fastjson.annotation.JSONField;
 
 import net.chen.cloudatlas.crow.common.Constants;
+import net.chen.cloudatlas.crow.common.KeyUtil;
 import net.chen.cloudatlas.crow.common.SpringContextUtil;
 import net.chen.cloudatlas.crow.common.ThrottleType;
 import net.chen.cloudatlas.crow.common.exception.ConfigException;
@@ -391,6 +392,10 @@ public class ServiceConfig<T> extends AbstractConfig {
 
 	public boolean isRpc() {
 		return implClass != null && !implClass.trim().isEmpty();
+	}
+
+	public String getServiceKey() {
+		return KeyUtil.getServiceKey(this.getServiceId(), this.getServiceKey());
 	}
 
 }

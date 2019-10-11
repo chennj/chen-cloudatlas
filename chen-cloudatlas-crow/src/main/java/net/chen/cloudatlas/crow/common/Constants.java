@@ -2,6 +2,7 @@ package net.chen.cloudatlas.crow.common;
 
 import java.util.regex.Pattern;
 
+import io.netty.buffer.ByteBuf;
 import net.chen.cloudatlas.crow.common.cluster.FailType;
 import net.chen.cloudatlas.crow.common.cluster.LoadBalanceType;
 
@@ -97,7 +98,7 @@ public final class Constants {
 	public static final String DEFAULT_PROTOCOL = "crow_binary";
 	public static final SerializationType DEFAULT_SERIALIZATION_TYPE = SerializationType.HESSIAN2;
 	public static final CompressAlgorithmType DEFAULT_COMPRESS_ALGORITHM = CompressAlgorithmType.NONE;
-	public static final String DEFAULT_PROTOCOL_VERSION = "1.0.0";
+	public static final String DEFAULT_PROTOCOL_VERSION = "1.0";
 	public static final boolean DEFAULT_USE_RPC = false;
 	public static final boolean DEFAULT_ONEWAY = false;
 	public static final boolean DEFAULT_COMPRESS = false;
@@ -193,6 +194,25 @@ public final class Constants {
 
 	public static final String SPRINGAUTOSTART_KEY = "springAutoStart";
 	public static final boolean SPRINGAUTOSTART = Boolean.parseBoolean(System.getProperty(SPRINGAUTOSTART_KEY,"true"));
+
+	public static final int DEFAULT_THROTTLE_PERIOD = Integer.parseInt(System.getProperty("DEFAULT_THROTTLE_PERIOD",String.valueOf(5*1000)));
+
+	// 报文最小长度
+	public static final int SIZE_TOTAL = 45;
+	public static final int SIZE_MAGIC = 2;
+	public static final int SIZE_MAJOR = 1;
+	public static final int SIZE_MINOR = 1;
+	public static final int SIZE_CONTENT_LEN = 4;
+	public static final int SIZE_STATUS_CODE = 1;
+	public static final int SIZE_REQUEST_ID = 4;
+	public static final int SIZE_FLAG = 1;
+	public static final int SIZE_CALLERID = 8;	//以后会移除掉
+	public static final int SIZE_SERVICEID = 20;//以后会移除
+	public static final int SIZE_SERVICEID_LEN = 2; 
+	public static final int SIZE_SERVICE_VERSION = 3;
+	public static final int SIZE_TRACE_ID_LEN = 2;
+	public static final int SIZE_PAYLOAD_LEN = 4;
+	public static final int SIZE_DC = 1;
 
 	public static long DEFAULT_MONITOR_INTERVAL = 1 * 60 * 1000; //1分钟
 
