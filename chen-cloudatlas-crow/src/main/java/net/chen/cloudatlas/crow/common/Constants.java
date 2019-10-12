@@ -214,6 +214,8 @@ public final class Constants {
 	public static final int SIZE_PAYLOAD_LEN = 4;
 	public static final int SIZE_DC = 1;
 
+	public static final boolean LOGGIND_MESSAGE = Boolean.parseBoolean(System.getProperty("LOGGING_MESSAGE","false"));
+
 	public static long DEFAULT_MONITOR_INTERVAL = 1 * 60 * 1000; //1分钟
 
 	public static String COMMA_SEPARATOR = ",";
