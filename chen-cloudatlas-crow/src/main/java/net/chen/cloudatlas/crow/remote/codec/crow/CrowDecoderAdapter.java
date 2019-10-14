@@ -3,6 +3,7 @@ package net.chen.cloudatlas.crow.remote.codec.crow;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.List;
 
 import org.tinylog.Logger;
 
@@ -434,5 +435,56 @@ public class CrowDecoderAdapter {
 		}
 		
 		return SM4Util.decryptMessageBySM4(sourceData, password);
+	}
+
+	public void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception {
+		
+		int readable = buffer.readableBytes();
+		
+		if (readable < DECODE_VERSION_TOTAL_SIZE){
+			return;
+		}
+		
+		//读取header
+		int version = buffer.getByte(buffer.readerIndex()+DECODE_VERSION_OFFSET);
+		byte majorByte = (byte)((version >>> 4) & 0x0F);
+		byte minorByte = (byte)(version & 0x0F);
+		
+		String protocolVersionStr = Constants.DEFAULT_PROTOCOL_VERSION;
+		if (
+				this.abstractDecoder != null
+				&& this.abstractDecoder.getUrl() != null
+				&& this.abstractDecoder.getUrl().getParameter(Constants.PROTOCOL_VERSION) != null){
+			
+			protocolVersionStr = this.abstractDecoder.getUrl().getParameter(Constants.PROTOCOL_VERSION);
+		}
+		
+		if (majorByte == CrowCodecVersion.V10.getMajorByte() && minorByte == CrowCodecVersion.V10.getMinorByte()){
+			
+			if (!CrowCodecVersion.V10.getVersion().equals(protocolVersionStr)){
+				Logger.debug("crow decoder compatibility works. the decoder's version is "
+						+ protocolVersionStr + ", but the request header's protocol version is"
+						+ CrowCodecVersion.V10.getVersion() + ". now use protocol version "
+						+ CrowCodecVersion.V10.getVersion() + " to decode");
+			}
+			
+			out.add(decode1(ctx, ctx.channel(), buffer));
+			
+		} else if (majorByte == CrowCodecVersion.V20.getMajorByte() && minorByte == CrowCodecVersion.V20.getMinorByte()){
+			
+			if (!CrowCodecVersion.V20.getVersion().equals(protocolVersionStr)){
+				Logger.debug("crow decoder compatibility works. the decoder's version is "
+						+ protocolVersionStr + ", but the request header's protocol version is"
+						+ CrowCodecVersion.V20.getVersion() + ". now use protocol version "
+						+ CrowCodecVersion.V20.getVersion() + " to decode");
+			}
+			
+			out.add(decode2(ctx, ctx.channel(), buffer));
+			
+		} else {
+			Logger.warn("CrowDecode invalid crow protocol version. majorbyte:"+majorByte+",minorbyte:"+minorByte);
+			out.add(decode1(ctx, ctx.channel(), buffer));
+		}
+
 	}
 }
