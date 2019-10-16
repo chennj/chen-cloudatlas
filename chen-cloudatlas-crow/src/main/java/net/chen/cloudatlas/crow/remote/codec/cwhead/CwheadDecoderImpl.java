@@ -63,7 +63,14 @@ public class CwheadDecoderImpl extends AbstractDecoder{
 		in.readBytes(content);
 		
 		CwheadMessage response = new CwheadMessage(content);
+		response.setId(id);
+		response.setVersion(version);
+		response.setLogId(logId);
+		response.setProvider(provider);
+		response.setMagicNum(magicNum);
+		response.setContentLen(contentLen);
 		
+		out.add(response);
 	}
 
 }

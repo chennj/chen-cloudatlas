@@ -76,7 +76,6 @@
 		    <artifactId>zookeeper</artifactId>
 		    <type>pom</type>
 		</dependency>
-
 	  	
 	  	<!-- zookeeper api封装 -->
 		<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-framework -->
@@ -135,6 +134,13 @@
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcprov-jdk15on</artifactId>
 	  		<version>${version.bouncycastle}</version>
+		</dependency>
+		
+		<!-- 加解压 -->
+		<!-- https://mvnrepository.com/artifact/org.xerial.snappy/snappy-java -->
+		<dependency>
+		    <groupId>org.xerial.snappy</groupId>
+		    <artifactId>snappy-java</artifactId>
 		</dependency>
 	</dependencies>
 </project>
