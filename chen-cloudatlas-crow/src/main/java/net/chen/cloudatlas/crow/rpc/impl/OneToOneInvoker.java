@@ -51,7 +51,7 @@ public class OneToOneInvoker implements SubInvoker{
 	}
 
 	@Override
-	public Class getInterface() {
+	public Class<?> getInterface() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -118,7 +118,7 @@ public class OneToOneInvoker implements SubInvoker{
 		long start = System.currentTimeMillis();
 		NettyClient.getClient(url).send(request);
 		long end = System.currentTimeMillis();
-		Logger.debug("crow frameowrk took {} milliseconds to [call] this message to {}",(end-start),this.ipAndPort);
+		Logger.debug("crow frameowrk took {} milliseconds to [acall] this message to {}",(end-start),this.ipAndPort);
 	}
 
 	@Override

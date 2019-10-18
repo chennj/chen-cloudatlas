@@ -22,7 +22,6 @@ import net.chen.cloudatlas.crow.remote.Response;
 
 /**
  * 业务逻辑处理器<br>
- * <font color=red>未完成</font><br>
  * @author chenn
  *
  */
@@ -67,8 +66,6 @@ public class NettyClientChannelHandler extends ChannelDuplexHandler{
 			NettyChannel.removeChannelIfDisconnected(ctx.channel());
 		}
 		
-		super.connect(ctx, remoteAddress, localAddress, promise);
-		
 		Logger.info(ctx.channel().remoteAddress() + " connected");
 	}
 
@@ -87,8 +84,6 @@ public class NettyClientChannelHandler extends ChannelDuplexHandler{
 			ChannelRegistry.invalidateChannel(ctx.channel());
 			NettyClient.handleErrorChannelReqToken(channel);
 		}
-		
-		super.disconnect(ctx, promise);
 		
 		Logger.info(ctx.channel().remoteAddress() + " disconnected");
 		Logger.info("client {} has lose connection from remote server {}",ctx.channel().localAddress(), ctx.channel().remoteAddress());
@@ -130,7 +125,6 @@ public class NettyClientChannelHandler extends ChannelDuplexHandler{
 			}
 		}
 		
-		super.channelRead(ctx, msg);
 	}
 
 	@Override
@@ -160,8 +154,6 @@ public class NettyClientChannelHandler extends ChannelDuplexHandler{
 				NettyClient.handleErrorChannelReqToken(channel);
 			}
 		}
-		
-		super.exceptionCaught(ctx, cause);
 	}
 	
 	public static String toAddressString(InetSocketAddress address){

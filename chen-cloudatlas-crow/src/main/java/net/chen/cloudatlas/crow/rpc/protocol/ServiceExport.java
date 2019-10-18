@@ -26,7 +26,6 @@ public class ServiceExport<T> {
 		this.config = config;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void doExport(URL url){
 		
 		if (!StringUtils.isEmpty(config.getProxyFactory())){

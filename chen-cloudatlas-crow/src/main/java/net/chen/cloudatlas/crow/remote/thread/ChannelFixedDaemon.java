@@ -10,6 +10,8 @@ import io.netty.channel.Channel;
 import net.chen.cloudatlas.crow.common.utils.UrlUtil;
 import net.chen.cloudatlas.crow.config.CrowClientContext;
 import net.chen.cloudatlas.crow.remote.ChannelRegistry;
+import net.chen.cloudatlas.crow.remote.RemoteException;
+import net.chen.cloudatlas.crow.remote.impl.NettyClient;
 
 /**
  * 守护线程<br>
@@ -41,6 +43,31 @@ public class ChannelFixedDaemon extends AbstractDaemon{
 				if (!CrowClientContext.isRemoteEnd(ipAndPort)){
 					ChannelRegistry.stopRetryChannel(c);
 					continue;
+				}
+				
+				NettyClient client = null;
+				try {
+					client = NettyClient.getClient((InetSocketAddress)c.remoteAddress());
+				} catch (RemoteException e){
+					Logger.error("client connection to {} has not been established",ipAndPort);
+				}
+				
+				if (client != null && client.isShutDown()){
+					continue;
+				}
+				
+				boolean success = true;
+				try {
+					Logger.info(address.toString()+" start to fix channel ...");
+					client.reconnect();
+				} catch (Exception e){
+					Logger.warn("fail to fix channel "+address.toString(),e);
+					success = false;
+				}
+				
+				if (success){
+					Logger.info(address.toString()+" channel fixed, removed from unavailable channels ...");
+					ChannelRegistry.stopRetryChannel(c,true);
 				}
 			}
 		} catch (Exception e){

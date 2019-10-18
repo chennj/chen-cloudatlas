@@ -238,5 +238,4 @@ public abstract class CrowHeader implements Message{
 			
 	}
 	
-	
 }

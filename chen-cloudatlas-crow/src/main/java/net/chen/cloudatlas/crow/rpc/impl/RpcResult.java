@@ -92,7 +92,7 @@ public class RpcResult implements Result, Serializable{
 		if (null != exception){
 			
 			if (exception instanceof Throwable){
-				Class cls = exception.getClass();
+				Class<?> cls = exception.getClass();
 				while (cls != null && (!cls.equals(Throwable.class))){
 					cls = cls.getSuperclass();
 				}

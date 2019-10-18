@@ -171,6 +171,16 @@ public class RpcInvocation implements Invocation, Serializable{
 		}
 	}
 	
+	public void addAttachments(Map<String,String> attachments){
+		if (null == attachments){
+			return;
+		}
+		if (this.attachments == null){
+			this.attachments = new HashMap<String,String>();
+		}
+		this.attachments.putAll(attachments);
+	}
+	
 	public void addAttachmentsIfAbsent(Map<String, String> attachments){
 		if  (null == attachments){
 			return;

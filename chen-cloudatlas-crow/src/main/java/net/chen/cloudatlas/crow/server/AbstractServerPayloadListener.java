@@ -18,10 +18,10 @@ import net.chen.cloudatlas.crow.remote.Channel;
 import net.chen.cloudatlas.crow.remote.RemoteException;
 import net.chen.cloudatlas.crow.remote.Request;
 import net.chen.cloudatlas.crow.remote.Response;
-import net.chen.cloudatlas.crow.remote.support.bthead.BtheadMessage;
 import net.chen.cloudatlas.crow.remote.support.crow.CrowRequest;
 import net.chen.cloudatlas.crow.remote.support.crow.CrowResponse;
 import net.chen.cloudatlas.crow.remote.support.crow.CrowStatus;
+import net.chen.cloudatlas.crow.remote.support.cwhead.CwheadMessage;
 import net.chen.cloudatlas.crow.rpc.Invocation;
 import net.chen.cloudatlas.crow.rpc.Invoker;
 import net.chen.cloudatlas.crow.rpc.Result;
@@ -161,7 +161,7 @@ public abstract class AbstractServerPayloadListener extends AbstractCrowControlL
 			Response response = null;
 			if (request instanceof CrowRequest){
 				response = doWithCrowProtocol(request);
-			} else if (request instanceof BtheadMessage){
+			} else if (request instanceof CwheadMessage){
 				response = doWithBtheadProtocol(request);
 			} else {
 				response = doWithExtendedProtocol(request);
