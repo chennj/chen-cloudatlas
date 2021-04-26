@@ -17,7 +17,7 @@
 	  	<version.commons-beanutils>1.9.3</version.commons-beanutils>
 	  	<version.commons-codec>1.11</version.commons-codec>
 	  	<version.commons-fileupload>1.4</version.commons-fileupload>
-	  	<version.commons-io>2.6</version.commons-io>
+	  	<version.commons-io>2.7</version.commons-io>
 	  	<version.fastjson>1.2.47</version.fastjson>
 	  	<version.com.caucho.hessian>4.0.38</version.com.caucho.hessian>
 	  	<version.com.esotericsoftware.kryo>4.0.1</version.com.esotericsoftware.kryo>
