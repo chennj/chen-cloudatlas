@@ -22,7 +22,7 @@
 	  	<version.com.caucho.hessian>4.0.38</version.com.caucho.hessian>
 	  	<version.com.esotericsoftware.kryo>4.0.1</version.com.esotericsoftware.kryo>
 	  	<version.io.undertow.undertow-core>2.0.23.Final</version.io.undertow.undertow-core>
-	  	<version.spring>4.3.22.RELEASE</version.spring>
+	  	<version.spring>5.3.18</version.spring>
 	  	<version.netty.netty-all>4.1.12.Final</version.netty.netty-all>
 	  	<version.org.xerial.snappy.snappy-java>1.1.7.3</version.org.xerial.snappy.snappy-java>
 	  	<version.easymock>3.0</version.easymock>
